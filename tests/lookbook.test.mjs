@@ -15,7 +15,7 @@ test('mergePiece ne modifie pas la tenue de départ', () => {
   assert.equal(o.top, 'hoodie');
   assert.equal(o.c.tBody, '#ff0000');
   // le logo du bas est gardé, celui du haut remplace les anciens logos du haut
-  assert.deepEqual(o.marks.map(m => m.place), ['thigh-l', 'chest-l']);
+  assert.equal(o.marks.map(m => m.place).join(), 'thigh-l,chest-l');
 });
 
 test('mergePiece applique bas et accessoire', () => {
@@ -34,4 +34,13 @@ test('applyPiece garde son comportement sur S', () => {
   assert.equal(t.S.top, 'hoodie');
   assert.equal(t.S.c.tBody, '#ff0000');
   assert.equal(t.S.mi, 0);
+});
+
+test('load() donne un Lookbook vide aux anciennes sauvegardes', () => {
+  const ancienne = JSON.stringify({ looks: [haut], brand: { name: 'X' } });
+  const t = charger({ 'atelier-marque-v1': ancienne });
+  assert.equal(JSON.stringify(t.S.lookbook), '[]');
+  assert.equal(t.S.lb.top, null);
+  assert.equal(JSON.stringify(t.S.lb.acc), '{}');
+  assert.equal(t.S.looks.length, 1);
 });

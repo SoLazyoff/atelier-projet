@@ -279,6 +279,7 @@ const DEF={
   c:Object.assign({},ACCC,PRESETS.find(x=>x.top==='bomber').c),acc:Object.assign({},ACC0,PRESETS.find(x=>x.top==='bomber').acc),
   brand:{name:'MA MARQUE',tag:'',vibes:['Streetwear'],logo:'bold',fg:'#f3f1ea',bg:'#111214',manifesto:''},
   looks:[],checks:{},marks:[],mi:0,
+  lookbook:[],lb:{top:null,bottom:null,acc:{},view:'front'},
   biz:{cost:22,qty:30,fixed:150,ship:4.5,fee:3,price:65}
 };
 let S=load();
@@ -297,6 +298,8 @@ function load(){
       d.biz=Object.assign({},DEF.biz,o.biz||{});
       d.looks=Array.isArray(o.looks)?o.looks:[];
       d.checks=o.checks||{};
+      d.lookbook=Array.isArray(o.lookbook)?o.lookbook:[];
+      d.lb=Object.assign({},DEF.lb,o.lb||{});d.lb.acc=Object.assign({},d.lb.acc);
     }
   }catch(e){}
   d.c.stitchB=d.c.stitchB||d.c.stitch;
