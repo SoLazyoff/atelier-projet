@@ -22,7 +22,9 @@
     --acc:#ef5a6e; --accInk:#17080b; --focus:#6aa9ff; --good:#58c98a; --bad:#ff8a80;
   }
 }
+:root[data-theme="light"]{color-scheme:light}
 :root[data-theme="dark"]{
+  color-scheme:dark;
   --bg:#141518; --panel:#1c1e22; --ink:#efeee8; --mute:#9a9da6; --line:#33363d;
   --acc:#ef5a6e; --accInk:#17080b; --focus:#6aa9ff; --good:#58c98a; --bad:#ff8a80;
 }
@@ -35,6 +37,9 @@ button,input,textarea{font-family:inherit}
 .bar{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--bg);border-bottom:1px solid var(--line);padding:12px 16px 10px;display:flex;align-items:baseline;justify-content:space-between;gap:12px}
 .mark{font-weight:850;font-stretch:125%;font-size:20px;letter-spacing:-.01em;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .sub{color:var(--mute);font-size:13px;white-space:nowrap}
+.hdr-r{display:flex;align-items:center;gap:10px;flex:none}
+.themebtn{border:1px solid var(--line);background:var(--panel);color:var(--ink);border-radius:999px;padding:6px 11px;font-weight:600;font-size:12.5px;white-space:nowrap}
+@media (max-width:440px){.bar .sub{display:none}}
 
 .tabs{position:fixed;left:0;right:0;bottom:0;z-index:6;display:grid;grid-template-columns:repeat(6,1fr);background:var(--bg);border-top:1px solid var(--line);padding-bottom:env(safe-area-inset-bottom,0px)}
 .tabs button{position:relative;background:none;border:0;color:var(--mute);padding:14px 1px 13px;font-weight:600;font-size:12.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -161,7 +166,7 @@ table.spec{border-collapse:collapse;font-size:13px;min-width:100%}
 </style>
 </head>
 <body>
-<header class="bar"><div class="mark" id="hdrName"></div><div class="sub">Atelier de création</div></header>
+<header class="bar"><div class="mark" id="hdrName"></div><div class="hdr-r"><div class="sub">Atelier de création</div><button class="themebtn" id="themeBtn" data-act="theme"></button></div></header>
 <main id="app"></main>
 <nav class="tabs" id="tabs" role="tablist">
   <button role="tab" data-act="tab" data-t="studio">Atelier</button>
@@ -177,6 +182,8 @@ table.spec{border-collapse:collapse;font-size:13px;min-width:100%}
 <script>
 /* ---------- données ---------- */
 const KEY='atelier-marque-v1';
+/* thème : auto suit le réglage du téléphone, clair et sombre le forcent */
+const THEMES={auto:'Auto',light:'Clair',dark:'Sombre'},THEME_NEXT={auto:'light',light:'dark',dark:'auto'};
 const TOPS={
   bomber:{label:'Bomber',zones:{tBody:'Corps',tSleeve:'Manches',tAccent:'Empiècements',tCollar:'Col',tTrim:'Bords-côtes'}},
   hoodie:{label:'Hoodie',zones:{tBody:'Corps',tSleeve:'Manches',tAccent:'Poche kangourou',tCollar:'Capuche',tTrim:'Bords-côtes'}},
@@ -405,7 +412,7 @@ const DEF={
   brand:{name:'MA MARQUE',tag:'',vibes:['Streetwear'],logo:'bold',fg:'#f3f1ea',bg:'#111214',manifesto:''},
   looks:[],checks:{},marks:[],mi:0,
   lookbook:[],lb:{top:null,bottom:null,acc:{},view:'front'},
-  pat:{top:'none',bottom:'none'},
+  pat:{top:'none',bottom:'none'},theme:'auto',
   biz:{cost:22,qty:30,fixed:150,ship:4.5,fee:3,price:65}
 };
 let S=load();
@@ -426,6 +433,7 @@ function load(){
       d.checks=o.checks||{};
       d.lookbook=Array.isArray(o.lookbook)?o.lookbook:[];
       d.pat=Object.assign({},DEF.pat,o.pat||{});
+      if(!THEMES[d.theme])d.theme='auto';
       d.lb=Object.assign({},DEF.lb,o.lb||{});d.lb.acc=Object.assign({},d.lb.acc);
     }
   }catch(e){}
@@ -1034,7 +1042,8 @@ function brand(){
 function refreshLogo(){
   $('#logoMain').innerHTML=logoSVG('main');$('#logoLabel').innerHTML=logoSVG('label');$('#logoMono').innerHTML=logoSVG('mono');
 }
-function setHeader(){$('#hdrName').textContent=S.brand.name||'Ma marque'}
+function setHeader(){$('#hdrName').textContent=S.brand.name||'Ma marque';const b=$('#themeBtn');if(b){b.textContent='Thème : '+THEMES[S.theme];b.setAttribute('aria-label',`Thème ${THEMES[S.theme].toLowerCase()}, touche pour passer en ${THEMES[THEME_NEXT[S.theme]].toLowerCase()}`)}}
+function applyTheme(){const r=document.documentElement;if(S.theme==='auto')r.removeAttribute('data-theme');else r.setAttribute('data-theme',S.theme)}
 
 /* ---------- onglet Collection ---------- */
 let openSheet=null,pendingDel=null,openPatron=null;
@@ -1328,6 +1337,7 @@ document.addEventListener('click',e=>{
   const a=el.dataset.act,k=el.dataset.k;
   switch(a){
     case 'tab':go(el.dataset.t);return;
+    case 'theme':S.theme=THEME_NEXT[S.theme];applyTheme();persist();setHeader();return;
     case 'view':S.view=k;break;
     case 'random':if(S.mode==='piece')randomPiece();else randomLook();break;
     case 'mode':S.mode=k;S.editId=null;S.sel=Object.keys(zonesOf(S))[0];break;
@@ -1446,6 +1456,7 @@ document.addEventListener('input',e=>{
   if(k.startsWith('biz.')){S.biz[k.slice(4)]=t.value===''?0:parseFloat(t.value);bizCalc();persist();return}
   if(k==='chk'){S.checks[t.dataset.id]=t.checked;persist();const sp=t.nextElementSibling;if(sp)sp.className=t.checked?'done':'';return}
 });
+applyTheme();
 renderTab();
 </script>
 </body>
