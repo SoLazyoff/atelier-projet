@@ -12,6 +12,7 @@ Langue de l'interface : français. Le téléphone est la cible principale (mobil
 - Rendu : `build(G, uid, sel)` génère le SVG du mannequin. Les zones colorables ont un `id` (`tBody`, `bLegs`, `aHead`…). `ZOOM` gère le cadrage en mode pièce.
 - Onglets : `studio()` (Atelier), `marquage()` (logos brodés/imprimés), `brand()` (Marque), `collection()`, `lookbook()`, `biz()` (Business).
 - Lookbook : `S.lookbook` contient des looks qui **référencent** des pièces par id (`top`, `bottom`, `acc:{groupe:id}`), sans copier leurs couleurs. `lookG()` les reconstruit via `mergePiece()` ; une pièce supprimée apparaît dans `miss`. `S.lb` = look en cours de composition. `renderTab()` choisit l'onglet.
+- Export de fiche : `sheetData(kind,id)` (`kind` = `look` pour la collection, `lb` pour le Lookbook) alimente `exportPdf()` (zone `#print` + `window.print()`) et `exportPng()` (canvas, partage natif sinon téléchargement).
 - Événements : un seul écouteur `click` (attributs `data-act`, `data-k`) et un seul `input` (attribut `data-in`).
 
 ## Règles pour modifier
