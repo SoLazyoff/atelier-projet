@@ -15,7 +15,7 @@ Langue de l'interface : français. Le téléphone est la cible principale (mobil
 - Événements : un seul écouteur `click` (attributs `data-act`, `data-k`) et un seul `input` (attribut `data-in`).
 
 ## Règles pour modifier
-- Ajouter un vêtement : l'ajouter dans `TOPS` ou `BOTTOMS` (avec ses zones), puis dessiner sa forme dans `build()` (face et dos). Les chemins SVG mirrorés utilisent `P(id, d, true)` et `mir()`.
+- Ajouter un vêtement : l'ajouter dans `TOPS` ou `BOTTOMS` (avec ses zones), puis dessiner sa forme dans `build()` (face et dos). `tests/coupes.test.mjs` vérifie automatiquement que chaque zone déclarée est dessinée. Si la coupe sort du cadre du mode pièce, lui donner un cadrage dans `ZOOMP`. Ordre de dessin : bas, tête, haut ; la bavette de salopette (`bib()`) passe après le haut pour les hauts de dessous (`INNER`). Les chemins SVG mirrorés utilisent `P(id, d, true)` et `mir()`.
 - Ajouter un accessoire : l'ajouter dans `ACC` / `ACC0` / `ACCC` / `AZL`, puis le dessiner dans `build()`.
 - Garder les anciens looks lisibles : toujours donner une valeur par défaut aux nouveaux champs dans `load()`.
 - Ne pas utiliser de balise `<form>`. Ne pas dépendre d'un serveur.
