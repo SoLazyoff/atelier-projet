@@ -157,6 +157,7 @@ const TOPS={
   crew:{label:'Sweat col rond',zones:{tBody:'Corps',tSleeve:'Manches',tAccent:'Bande poitrine',tCollar:'Col',tTrim:'Bords-côtes'}},
   shirt:{label:'Chemise',zones:{tBody:'Corps',tSleeve:'Manches',tAccent:'Poches / empiècement',tCollar:'Col',tTrim:'Patte de boutons et poignets'}},
   denimjk:{label:'Veste en jean',zones:{tBody:'Corps',tSleeve:'Manches',tAccent:'Poches / empiècement',tCollar:'Col',tTrim:'Ceinture et poignets'}},
+  denimlong:{label:'Veste en jean longue',zones:{tBody:'Corps',tSleeve:'Manches',tAccent:'Poches / empiècement',tCollar:'Col',tTrim:'Ourlet et poignets'}},
   wind:{label:'Coupe-vent',zones:{tBody:'Corps',tSleeve:'Manches',tAccent:'Empiècement',tCollar:'Capuche',tTrim:'Poignets et ourlet'}},
   puffer:{label:'Doudoune',zones:{tBody:'Corps',tSleeve:'Manches',tAccent:'Bande basse',tCollar:'Col montant',tTrim:'Bords-côtes'}},
   vest:{label:'Gilet sans manches',zones:{tBody:'Corps',tSleeve:'Emmanchures',tAccent:'Bande basse',tCollar:'Col montant',tTrim:'Bords-côtes'}},
@@ -279,6 +280,8 @@ const QUICK=[
 ];
 const MARKCAT={'chest-l':'top','chest-r':'top','chest-c':'top','belly':'top','sleeve-l':'top','sleeve-r':'top','nape':'top','back-c':'top','back-low':'top','thigh-l':'bottom','thigh-r':'bottom','pocket-l':'bottom','pocket-r':'bottom','cap':'acc'};
 const CATS={top:'Haut',bottom:'Bas',acc:'Accessoire'};
+/* cadrage du mode pièce pour les coupes qui sortent du cadre standard */
+const ZOOMP={denimlong:'0 30 300 300'};
 const ZOOM={top:'10 30 280 260',bottom:'40 190 220 295',acc:{head:'85 -14 130 120',glass:'95 -4 110 80',ear:'95 -4 110 80',neck:'90 30 120 150',bag:'20 40 260 240',wrist:'30 190 240 80',belt:'60 180 180 70',sock:'60 330 180 150',shoe:'40 400 220 90'}};
 const DEF={
   mode:'piece',cat:'top',accGroup:'head',editId:null,fabricB:'leather',
@@ -593,6 +596,13 @@ function build(G,uid,sel){
     add(P('tTrim','M95 194 L205 194 L206 206 L94 206 Z',0));
     if(F)add(ln('M150 92 L150 194','btn'),P('tCollar','M124 58 L149 64 L150 92 L128 84 Z',1),lm('M108 114 L134 114','seam'));
     else add(P('tCollar','M124 58 Q150 52 176 58 L176 70 Q150 76 124 70 Z',0));
+  }else if(top==='denimlong'){
+    add(P('tBody','M104 66 Q150 54 196 66 L202 104 L210 300 L90 300 L98 104 Z',0));
+    add(P('tTrim','M91 288 L209 288 L210 300 L90 300 Z',0));
+    if(F){
+      add(P('tAccent','M108 100 L134 100 L134 132 L108 132 Z',1),lm('M108 113 L134 113','seam'),P('tCollar','M124 58 L149 64 L150 92 L128 84 Z',1));
+      add(ln('M150 92 L150 288','btn'),lm('M112 196 L120 244','seam'),lm('M100 92 Q124 88 146 96','seam'));
+    }else add(P('tAccent','M100 70 Q150 62 200 70 L202 100 Q150 112 98 100 Z',0),P('tCollar','M124 58 Q150 52 176 58 L176 70 Q150 76 124 70 Z',0),ln('M150 104 L150 288','seam'),lm('M126 104 L120 288','seam'));
   }else if(top==='wind'){
     add(P('tBody','M100 66 Q150 58 200 66 L208 108 L210 200 Q210 212 202 214 L98 214 Q90 212 90 200 L92 108 Z',0));
     add(P('tAccent','M96 80 Q150 124 204 80 L208 108 Q150 154 92 108 Z',0));
@@ -679,7 +689,7 @@ function build(G,uid,sel){
     else if(x.k==='str')out+=`<path d="${x.d}" fill="none" stroke="#efece4" stroke-width="1.7" stroke-linecap="round" pointer-events="none"/>`;
     else out+=`<path d="${x.d}" fill="none" stroke="${x.b?C.stitchB:C.stitch}" stroke-width=".9" stroke-dasharray="3 2" pointer-events="none"/>`;
   });
-  const vb=only==='top'?ZOOM.top:only==='bottom'?ZOOM.bottom:only==='acc'?(ZOOM.acc[G.accGroup||'head']||'0 -14 300 514'):'0 -14 300 514';
+  const vb=only==='top'?(ZOOMP[top]||ZOOM.top):only==='bottom'?(ZOOMP[bot]||ZOOM.bottom):only==='acc'?(ZOOM.acc[G.accGroup||'head']||'0 -14 300 514'):'0 -14 300 514';
   return `<svg viewBox="${vb}" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Aperçu"><defs>${vol}${ovDef(G.fabric,'ov'+uid)}${ovDef(G.fabricB||G.fabric,'ovb'+uid)}${patDef(PT.top,C.tPat||'#f3f1ea','patt'+uid,50,260)}${patDef(PT.bottom,C.bPat||'#f3f1ea','patb'+uid,250,480)}</defs>${out}${hi}</svg>`;
 }
 
