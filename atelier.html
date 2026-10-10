@@ -85,6 +85,23 @@ h2:first-child{margin-top:4px}
 .ghost{background:none;border:1px solid var(--line);color:var(--ink);border-radius:10px;padding:10px 14px;font-weight:600;font-size:14px}
 .row2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 .row3{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.mockroom{background:#0e0e10;color:#f2f2f0;padding:6px 16px 28px;min-height:60vh}
+.mockroom h2{color:#fff}
+.mgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px 10px}
+@media (min-width:600px){.mgrid{grid-template-columns:repeat(auto-fill,minmax(150px,1fr))}}
+.mtile{background:none;border:0;padding:8px 4px;color:#e8e8e6;font-size:12px;font-weight:500;line-height:1.25;text-align:center;border-radius:10px}
+.mtile svg{display:block;width:100%;height:78px;margin-bottom:6px}
+.mtile.mine{background:#1f2024}
+.mtile[aria-pressed="true"]{outline:2px solid #f2f2f0}
+.mtile[hidden]{display:none}
+.mmute{color:#9a9da6;font-size:13px;margin:0}
+.mfilters{display:grid;gap:10px;margin-bottom:16px}
+.mockroom .chip{background:#1f2024;color:#e8e8e6;border-color:#36383e}
+.mockroom .chip[aria-pressed="true"]{background:#f2f2f0;color:#0e0e10;border-color:#f2f2f0}
+.msearch{width:100%;padding:10px 12px;border-radius:10px;border:1px solid #36383e;background:#1f2024;color:#f2f2f0;font:inherit;font-size:15px}
+.mactions{margin:14px 0 4px;padding:12px;border-radius:12px;background:#1f2024}
+.mactions .row2{margin-top:10px}
+.mactions .ghost{color:#f2f2f0;border-color:#3a3d44;width:100%}
 .flat{margin:0;background:#fff;border:1px solid var(--line);border-radius:8px;overflow:hidden}
 .flat svg{display:block;width:100%;height:210px}
 .flat figcaption{text-align:center;font-size:12.5px;font-weight:600;padding:4px;color:#111}
@@ -418,7 +435,7 @@ const DEF={
   brand:{name:'MA MARQUE',tag:'',vibes:['Streetwear'],logo:'bold',fg:'#f3f1ea',bg:'#111214',manifesto:''},
   looks:[],checks:{},marks:[],mi:0,
   lookbook:[],lb:{top:null,bottom:null,acc:{},view:'front'},
-  pat:{top:'none',bottom:'none'},theme:'auto',
+  pat:{top:'none',bottom:'none'},theme:'auto',collView:'mock',libCat:'all',
   biz:{cost:22,qty:30,fixed:150,ship:4.5,fee:3,price:65}
 };
 let S=load();
@@ -440,6 +457,8 @@ function load(){
       d.lookbook=Array.isArray(o.lookbook)?o.lookbook:[];
       d.pat=Object.assign({},DEF.pat,o.pat||{});
       if(!THEMES[d.theme])d.theme='auto';
+      if(d.collView!=='fiches')d.collView='mock';
+      if(!['all','top','bottom'].includes(d.libCat))d.libCat='all';
       d.lb=Object.assign({},DEF.lb,o.lb||{});d.lb.acc=Object.assign({},d.lb.acc);
     }
   }catch(e){}
@@ -1099,12 +1118,37 @@ function patronPanel(p){
   </tbody></table></div>
   <button class="ghost" data-act="specReset" data-k="${p.id}" style="width:100%;margin-top:10px">Revenir aux mesures standard</button></div>`;
 }
+/* ---------- vue Mockups (bibliothèque façon Mockup Designer) ---------- */
+let selMock=null,libQ='';
+const LIBSVG={};
+/* noms anglais des bibliothèques de mockups, pour que « puffer » ou « tee » trouvent le bon modèle */
+const LIBALIAS={tshirt:'tee t-shirt',longsleeve:'long sleeve tee',polo:'polo',crew:'crewneck sweatshirt sweater',hoodie:'hoodie',balahood:'balaclava hoodie cagoule',shirt:'shirt button up',bomber:'bomber jacket',track:'track jacket tracksuit',denimjk:'denim jacket jean',denimlong:'long denim jacket coat',wind:'windbreaker anorak',puffer:'puffer jacket doudoune',pufvest:'puffer vest gilet',vest:'vest gilet',jersey:'jersey tank maillot',cardigan:'cardigan',varsity:'varsity jacket',biker:'biker leather jacket',coat:'coat long',trench:'trench coat',sweat:'sweatpants jogger',wide:'wide pants trousers',cargo:'cargo pants',para:'parachute pants',jean:'jeans denim baggy',taper:'tapered pants',pleated:'pleated trousers slacks',flare:'flare pants flared',short:'shorts',bermuda:'cargo shorts bermuda',overall:'overalls dungarees salopette',skirt:'skirt jupe'};
+const libItems=()=>Object.keys(TOPS).map(k=>({cat:'top',k,label:TOPS[k].label})).concat(Object.keys(BOTTOMS).map(k=>({cat:'bottom',k,label:BOTTOMS[k].label}))).map(m=>Object.assign(m,{q:(m.label+' '+m.k+' '+(LIBALIAS[m.k]||'')).toLowerCase()}));
+/* les modèles gris ne changent jamais : on les dessine une fois */
+function libSVG(m){const id=m.cat+m.k;return LIBSVG[id]||(LIBSVG[id]=mockupSVG({cat:m.cat,[m.cat]:m.k,c:{},marks:[]},'gray','l'+id))}
+const libHit=(m,q)=>!q.trim()||m.q.includes(q.trim().toLowerCase());
+function collHead(){return `<div class="pad" style="padding-bottom:12px"><div class="seg2" role="group" aria-label="Affichage de la collection"><button data-act="collView" data-k="mock" aria-pressed="${S.collView!=='fiches'}">Mockups</button><button data-act="collView" data-k="fiches" aria-pressed="${S.collView==='fiches'}">Fiches</button></div></div>`}
+function mockups(){
+  const mine=piecesOf().filter(p=>p.cat!=='acc'),sel=mine.find(p=>p.id===selMock);
+  const lib=libItems().filter(m=>S.libCat==='all'||m.cat===S.libCat),shown=lib.filter(m=>libHit(m,libQ)).length;
+  return collHead()+`<section class="mockroom">
+  <h2>Mes mockups (${mine.length})</h2>
+  ${mine.length?`<div class="mgrid">${mine.map(p=>`<button class="mtile mine" data-act="mockSel" data-k="${p.id}" aria-pressed="${p.id===selMock}">${mockupSVG(p,'color','mc'+p.id)}<span>${esc(p.name)}</span></button>`).join('')}</div>`:`<p class="mmute">Aucune pièce pour l’instant : choisis un modèle dans la bibliothèque pour commencer.</p>`}
+  ${sel?`<div class="mactions"><b>${esc(sel.name)}</b><div class="row2"><button class="ghost" data-act="openPiece" data-k="${sel.id}">Modifier</button><button class="ghost" data-act="mockGo" data-to="patron" data-k="${sel.id}">Patron</button><button class="ghost" data-act="mockGo" data-to="sheet" data-k="${sel.id}">Fiche</button><button class="ghost" data-act="shImg" data-kind="look" data-k="${sel.id}">Image</button></div></div>`:''}
+  <h2>Bibliothèque (${lib.length} modèles)</h2>
+  <div class="mfilters"><div class="chips hs">${[['all','Tous'],['top','Hauts'],['bottom','Bas']].map(([k,l])=>`<button class="chip" data-act="libCat" data-k="${k}" aria-pressed="${S.libCat===k}">${l}</button>`).join('')}</div>
+  <input class="msearch" type="search" data-in="libq" value="${esc(libQ)}" placeholder="Rechercher un modèle (hoodie, cargo…)" aria-label="Rechercher un modèle"></div>
+  <div class="mgrid" id="libGrid">${lib.map(m=>`<button class="mtile" data-act="libUse" data-cat="${m.cat}" data-k="${m.k}" data-q="${esc(m.q)}"${libHit(m,libQ)?'':' hidden'}>${libSVG(m)}<span>${esc(m.label)}</span></button>`).join('')}</div>
+  <p class="mmute" id="libNone"${shown?' hidden':''}>Aucun modèle ne correspond.</p>
+  </section>`;
+}
 function collection(){
-  if(!S.looks.length)return `<div class="pad"><h2>Ma collection</h2><p class="mute">Rien pour l’instant. Crée une pièce dans l’Atelier (mode « Pièce par pièce »), enregistre-la ici, puis assemble tes pièces en tenue.</p><button class="primary" data-act="tab" data-t="studio">Aller à l’Atelier</button></div>`;
+  if(S.collView!=='fiches')return mockups();
+  if(!S.looks.length)return collHead()+`<div class="pad"><h2>Ma collection</h2><p class="mute">Rien pour l’instant. Crée une pièce dans l’Atelier (mode « Pièce par pièce »), enregistre-la ici, puis assemble tes pièces en tenue.</p><button class="primary" data-act="tab" data-t="studio">Aller à l’Atelier</button></div>`;
   const sh=S.looks.find(l=>l.id===openSheet);
   const pcs=piecesOf(),outs=S.looks.filter(l=>l.kind!=='piece');
   const sec=(t,list)=>list.length?`<h2>${t} (${list.length})</h2><div class="grid">${list.map(lookCard).join('')}</div>`:'';
-  return `<div class="pad">
+  return collHead()+`<div class="pad">
   ${sec('Hauts',pcs.filter(p=>p.cat==='top'))}${sec('Bas',pcs.filter(p=>p.cat==='bottom'))}${sec('Accessoires',pcs.filter(p=>p.cat==='acc'))}${sec('Tenues',outs)}
   ${(()=>{const pp=S.looks.find(l=>l.id===openPatron&&l.kind==='piece'&&l.cat!=='acc');return pp?patronPanel(pp):''})()}
   ${sh?`<div class="sheet"><pre>${esc(sheetText(sh))}</pre>${sheetButtons('look',sh.id,'copy')}<p class="small mute" style="margin:10px 0 0">À envoyer à un atelier ou un patronnier, ou à garder pour refaire la pièce en 3D.</p></div>`:''}
@@ -1407,6 +1451,17 @@ document.addEventListener('click',e=>{
     case 'logoFg':S.brand.fg=k;break;
     case 'openLook':{const l=S.looks.find(x=>x.id==k);if(l){S.top=l.top;S.bottom=l.bottom;S.fabric=l.fabric;S.fabricB=l.fabricB||l.fabric;S.pat=Object.assign({},DEF.pat,l.pat||{});S.mode='outfit';S.editId=null;S.c=fixC(Object.assign({},ACCC,l.c));S.acc=Object.assign({},ACC0,l.acc||{});S.marks=(l.marks||[]).map(m=>Object.assign({},DEFMARK,m));S.mi=0;S.view='front';go('studio')}return}
     case 'sheet':openSheet=(openSheet==+k)?null:+k;break;
+    case 'collView':S.collView=k;break;
+    case 'libCat':S.libCat=k;break;
+    case 'mockSel':selMock=(selMock==+k)?null:+k;renderTab();{const e=$('.mactions');if(e&&e.scrollIntoView)e.scrollIntoView({behavior:'smooth',block:'nearest'})}return;
+    case 'mockGo':{
+      S.collView='fiches';if(el.dataset.to==='patron')openPatron=+k;else openSheet=+k;persist();renderTab();
+      const e=$(el.dataset.to==='patron'?'.patron':'.sheet');if(e&&e.scrollIntoView)e.scrollIntoView({behavior:'smooth',block:'start'});return;
+    }
+    case 'libUse':{
+      const cat=el.dataset.cat;S.mode='piece';S.cat=cat;S[cat]=k;S.editId=null;S.view='front';S.sel=Object.keys(zonesOf(S))[0];
+      toast((cat==='top'?TOPS:BOTTOMS)[k].label+' ouvert dans l’Atelier');go('studio');return;
+    }
     case 'patron':openPatron=(openPatron==+k)?null:+k;persist();renderTab();{const e=$('.patron');if(e&&e.scrollIntoView)e.scrollIntoView({behavior:'smooth',block:'start'})}return;
     case 'specReset':{const p=S.looks.find(x=>x.id==k);if(p)delete p.spec;toast('Mesures standard rétablies');break}
     case 'del':
@@ -1460,6 +1515,11 @@ document.addEventListener('input',e=>{
   if(k==='name'){S.brand.name=t.value;setHeader();refreshLogo();persist();return}
   if(k==='tag'){S.brand.tag=t.value;refreshLogo();persist();return}
   if(k==='manifesto'){S.brand.manifesto=t.value;persist();return}
+  if(k==='libq'){
+    libQ=t.value;let n=0;
+    document.querySelectorAll('#libGrid .mtile').forEach(b=>{const ok=libHit({q:b.dataset.q},libQ);b.hidden=!ok;if(ok)n++});
+    const none=$('#libNone');if(none)none.hidden=n>0;return;
+  }
   if(k==='spec'){
     const p=S.looks.find(x=>x.id==t.dataset.id);if(!p)return;const v=parseFloat(t.value),key=t.dataset.k;
     p.spec=Object.assign({},p.spec);if(Number.isFinite(v)&&v>0)p.spec[key]=v;else delete p.spec[key];
