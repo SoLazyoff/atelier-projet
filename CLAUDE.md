@@ -13,6 +13,7 @@ Langue de l'interface : français. Le téléphone est la cible principale (mobil
 - Onglets : `studio()` (Atelier), `marquage()` (logos brodés/imprimés), `brand()` (Marque), `collection()`, `lookbook()`, `biz()` (Business).
 - Lookbook : `S.lookbook` contient des looks qui **référencent** des pièces par id (`top`, `bottom`, `acc:{groupe:id}`), sans copier leurs couleurs. `lookG()` les reconstruit via `mergePiece()` ; une pièce supprimée apparaît dans `miss`. `S.lb` = look en cours de composition. `renderTab()` choisit l'onglet.
 - Export de fiche : `sheetData(kind,id)` (`kind` = `look` pour la collection, `lb` pour le Lookbook) alimente `exportPdf()` (zone `#print` + `window.print()`) et `exportPng()` (canvas, partage natif sinon téléchargement).
+- Patronage : `SPEC` (mesures taille M par coupe), `POM` (libellés), `GRADE` (pas par taille), `TOL` (tolérances) ; `specRows(p)` donne la grille S→XXL avec les surcharges `p.spec`. `flatSVG(p,view)` dessine la pièce à plat (mode `flat` de `build()`) et place les cotes A, B… sur sa géométrie. Toute nouvelle coupe doit avoir son entrée dans `SPEC` (un test le vérifie). Ce sont des mesures de vêtement fini pour un tech pack, pas des pièces de patron 1:1.
 - Événements : un seul écouteur `click` (attributs `data-act`, `data-k`) et un seul `input` (attribut `data-in`).
 
 ## Règles pour modifier
