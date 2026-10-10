@@ -303,6 +303,37 @@ const QUICK=[
 ];
 const MARKCAT={'chest-l':'top','chest-r':'top','chest-c':'top','belly':'top','sleeve-l':'top','sleeve-r':'top','nape':'top','back-c':'top','back-low':'top','thigh-l':'bottom','thigh-r':'bottom','pocket-l':'bottom','pocket-r':'bottom','cap':'acc'};
 const CATS={top:'Haut',bottom:'Bas',acc:'Accessoire'};
+/* ---------- patronage : points de mesure (cm, taille M), gradation et tolérances ---------- */
+const SIZES=['S','M','L','XL','XXL'],SIZEOFF=[-1,0,1,2,3];
+const POM={
+  top:{L:'Longueur dos (encolure → ourlet)',E:'Carrure (épaule à épaule)',P:'Demi-tour de poitrine',B:'Demi-tour de bas',M:'Longueur de manche (épaule → poignet)',W:'Demi-ouverture de poignet',H:'Hauteur de capuche'},
+  bottom:{T:'Demi-tour de taille',H:'Demi-tour de hanches',C:'Longueur côté (taille → ourlet)',I:'Entrejambe',K:'Demi-tour de cuisse',O:'Demi-ouverture de bas',R:'Montant (taille → entrejambe)',V:'Hauteur de bavette'}
+};
+const GRADE={top:{L:2,E:1.5,P:2,B:2,M:1,W:.5,H:1},bottom:{T:2,H:2,C:1,I:.5,K:1,O:.5,R:.7,V:1}};
+const TOL={top:{L:1,E:.5,P:1,B:1,M:1,W:.5,H:.5},bottom:{T:1,H:1,C:1,I:1,K:.5,O:.5,R:.5,V:.5}};
+const SPEC={
+  tshirt:{L:72,E:50,P:56,B:56,M:22,W:19},longsleeve:{L:72,E:48,P:55,B:55,M:64,W:10},polo:{L:72,E:47,P:55,B:55,M:23,W:18},
+  crew:{L:70,E:54,P:60,B:52,M:62,W:10},hoodie:{L:72,E:56,P:62,B:54,M:62,W:10,H:36},balahood:{L:72,E:56,P:62,B:54,M:62,W:10,H:40},
+  shirt:{L:76,E:48,P:58,B:57,M:64,W:12},bomber:{L:66,E:52,P:62,B:52,M:64,W:10},track:{L:70,E:48,P:58,B:52,M:63,W:10},
+  denimjk:{L:64,E:48,P:58,B:56,M:63,W:13},denimlong:{L:96,E:49,P:60,B:62,M:64,W:13},wind:{L:74,E:56,P:64,B:62,M:64,W:11,H:38},
+  puffer:{L:70,E:52,P:66,B:62,M:66,W:11},pufvest:{L:70,E:42,P:64,B:60},vest:{L:68,E:40,P:58,B:56},jersey:{L:76,E:38,P:54,B:54},
+  cardigan:{L:70,E:48,P:58,B:52,M:62,W:10},varsity:{L:68,E:52,P:62,B:52,M:64,W:10},biker:{L:58,E:46,P:54,B:50,M:64,W:11},
+  coat:{L:105,E:48,P:62,B:66,M:65,W:15},trench:{L:105,E:48,P:62,B:66,M:65,W:15},
+  sweat:{T:38,H:56,C:104,I:76,K:36,O:18,R:32},wide:{T:40,H:56,C:106,I:78,K:36,O:30,R:31},cargo:{T:40,H:56,C:106,I:78,K:36,O:26,R:31},
+  para:{T:38,H:60,C:106,I:76,K:40,O:15,R:33},jean:{T:42,H:56,C:108,I:80,K:36,O:27,R:32},taper:{T:38,H:52,C:102,I:76,K:32,O:15,R:28},
+  pleated:{T:40,H:56,C:106,I:78,K:36,O:24,R:31},flare:{T:39,H:52,C:108,I:82,K:30,O:30,R:28},short:{T:38,H:56,C:48,I:18,K:34,O:32,R:31},
+  bermuda:{T:40,H:56,C:60,I:28,K:36,O:30,R:31},overall:{T:46,H:58,C:108,I:78,K:36,O:28,R:32,V:30},skirt:{T:38,H:52,C:60,O:64}
+};
+/* repères dans l'ordre d'affichage ; la lettre A, B… suit cet ordre */
+function specRows(p){
+  const cat=p.cat,cut=cat==='top'?p.top:p.bottom,def=SPEC[cut];if(!def||!POM[cat])return [];
+  const ov=p.spec||{};
+  return Object.keys(POM[cat]).filter(k=>k in def).map((k,i)=>{
+    const m=Number.isFinite(ov[k])?ov[k]:def[k];
+    return {k,letter:String.fromCharCode(65+i),label:POM[cat][k],base:m,custom:Number.isFinite(ov[k]),tol:TOL[cat][k],vals:SIZEOFF.map(o=>Math.round((m+o*GRADE[cat][k])*10)/10)};
+  });
+}
+const cm=v=>String(v).replace('.',',');
 /* cadrage du mode pièce pour les coupes qui sortent du cadre standard */
 const ZOOMP={denimlong:'0 30 300 300',balahood:'10 -14 280 280',overall:'40 40 220 450'};
 const ZOOM={top:'10 30 280 260',bottom:'40 190 220 295',acc:{head:'85 -14 130 120',glass:'95 -4 110 80',ear:'95 -4 110 80',neck:'90 30 120 150',bag:'20 40 260 240',wrist:'30 190 240 80',belt:'60 180 180 70',sock:'60 330 180 150',shoe:'40 400 220 90'}};
@@ -944,6 +975,8 @@ function sheetText(L){
     else if(L.cat==='bottom'){t+=`Bas : ${BOTTOMS[L.bottom].label}\nMatière : ${FABRICS[L.fabricB||L.fabric]}\n\nCouleurs\n`;const Z=BOTTOMS[L.bottom].zones;Object.keys(Z).forEach(k=>{t+=`- ${Z[k]} : ${colorName(L.c[k])} (${L.c[k]})\n`});t+=`- Surpiqûres et liserés : ${colorName(L.c.stitchB)} (${L.c.stitchB})\n`+patLine(L.pat,L.c.bPat,'Motif (jambes)')}
     else{const z=ACC[L.group].z;t+=`Accessoire : ${ACC[L.group].label}, ${ACC[L.group].opts[L.opt]}\nCouleur : ${colorName(L.c[z])} (${L.c[z]})\n`}
     if(L.marks&&L.marks.length){t+='\nMarquage (logos)\n';L.marks.forEach((m,i)=>{t+='- '+markDesc(Object.assign({},DEFMARK,m),i)+'\n'})}
+    const sr=specRows(L);
+    if(sr.length){t+=`\nMesures en cm (${SIZES.join(' / ')})\n`;sr.forEach(r=>{t+=`- ${r.letter}. ${r.label} : ${r.vals.map(cm).join(' / ')} (tolérance ±${cm(r.tol)})\n`})}
     return t;
   }
   const T=TOPS[L.top],B=BOTTOMS[L.bottom],Z=Object.assign({},T.zones,B.zones);
