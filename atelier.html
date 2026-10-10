@@ -160,6 +160,7 @@ const TOPS={
   denimlong:{label:'Veste en jean longue',zones:{tBody:'Corps',tSleeve:'Manches',tAccent:'Poches / empiècement',tCollar:'Col',tTrim:'Ourlet et poignets'}},
   wind:{label:'Coupe-vent',zones:{tBody:'Corps',tSleeve:'Manches',tAccent:'Empiècement',tCollar:'Capuche',tTrim:'Poignets et ourlet'}},
   puffer:{label:'Doudoune',zones:{tBody:'Corps',tSleeve:'Manches',tAccent:'Bande basse',tCollar:'Col montant',tTrim:'Bords-côtes'}},
+  pufvest:{label:'Doudoune sans manches',zones:{tBody:'Corps',tSleeve:'Emmanchures',tAccent:'Empiècement épaules',tCollar:'Col montant',tTrim:'Bords-côtes'}},
   vest:{label:'Gilet sans manches',zones:{tBody:'Corps',tSleeve:'Emmanchures',tAccent:'Bande basse',tCollar:'Col montant',tTrim:'Bords-côtes'}},
   jersey:{label:'Débardeur / maillot',zones:{tBody:'Corps',tSleeve:'Bretelles',tAccent:'Bande / numéro',tCollar:'Encolure',tTrim:'Ourlet'}},
   cardigan:{label:'Cardigan',zones:{tBody:'Corps',tSleeve:'Manches',tAccent:'Bande / motif',tCollar:'Col V',tTrim:'Bords-côtes'}},
@@ -402,7 +403,7 @@ function build(G,uid,sel){
   const ln=(d,k)=>({t:'l',d,k,b:inBot});
   const lm=(d,k)=>[ln(d,k),ln(mir(d),k)];
   const SKIN='#c4c6cc',SKIN2='#b3b6bd';
-  const bare=top==='tshirt'||top==='polo'||top==='jersey'||top==='vest';
+  const bare=top==='tshirt'||top==='polo'||top==='jersey'||top==='vest'||top==='pufvest';
   const hooded=top==='hoodie'||top==='wind';
   const WB1='M96 204 L204 204 L204 226 L96 226 Z',WB2='M96 204 L204 204 L204 217 L96 217 Z';
   const cord=()=>{if(F)add(ln('M146 226 Q144 242 140 254','str'),ln('M154 226 Q156 242 160 254','str'))};
@@ -527,7 +528,7 @@ function build(G,uid,sel){
     add(P('tSleeve','M104 64 L72 74 Q42 92 38 168 L40 214 L80 220 Q84 190 94 150 L100 108 Z',1));
     add(P('tTrim','M39 198 L81 205 L80 220 L40 214 Z',1));
     add(lm('M52 100 Q70 110 92 104','seam'),lm('M42 140 Q66 150 90 142','seam'));
-  }else if(top==='jersey'||top==='vest'){/* sans manches */}
+  }else if(top==='jersey'||top==='vest'||top==='pufvest'){/* sans manches */}
   else add(P('tSleeve','M106 66 L74 76 Q54 92 48 168 L49 208 L75 214 Q80 190 94 150 L100 108 Z',1),P('tTrim','M48 192 L76 198 L75 214 L49 208 Z',1));
 
   /* haut */
@@ -568,6 +569,15 @@ function build(G,uid,sel){
     add(P('tAccent','M87 160 L213 160 L214 200 Q150 208 86 200 Z',0));
     add(P('tTrim','M87 204 Q150 210 213 204 L214 214 Q150 220 86 214 Z',0));
     ['M89 100 Q150 106 211 100','M87 130 Q150 136 213 130','M87 160 Q150 166 213 160','M86 188 Q150 194 214 188'].forEach(d=>add(ln(d,'seam')));
+    if(F)add(P('tCollar','M122 52 Q150 44 178 52 L181 76 Q150 88 119 76 Z',0),ln('M150 76 L150 214','zip'));
+    else add(P('tCollar','M122 52 Q150 44 178 52 L181 72 Q150 82 119 72 Z',0));
+  }else if(top==='pufvest'){
+    /* volume de doudoune, emmanchures larges et matelassage serré */
+    add(P('tBody','M100 64 Q150 54 200 64 L212 112 L214 196 Q214 212 204 214 L96 214 Q86 212 86 196 L88 112 Z',0));
+    add(P('tSleeve','M100 64 L88 112 L99 116 L109 67 Z',1));
+    add(P('tAccent','M104 66 Q150 56 196 66 L201 86 Q150 78 99 86 Z',0));
+    add(P('tTrim','M87 204 Q150 210 213 204 L214 214 Q150 220 86 214 Z',0));
+    ['M99 112 Q150 118 201 112','M88 136 Q150 142 212 136','M87 160 Q150 166 213 160','M86 184 Q150 190 214 184'].forEach(d=>add(ln(d,'seam')));
     if(F)add(P('tCollar','M122 52 Q150 44 178 52 L181 76 Q150 88 119 76 Z',0),ln('M150 76 L150 214','zip'));
     else add(P('tCollar','M122 52 Q150 44 178 52 L181 72 Q150 82 119 72 Z',0));
   }else if(top==='vest'){
