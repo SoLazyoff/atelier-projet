@@ -365,6 +365,12 @@ function dim(x1,y1,x2,y2,letter){
   const len=Math.hypot(x2-x1,y2-y1)||1,nx=r1(-(y2-y1)/len*4),ny=r1((x2-x1)/len*4),mx=r1((x1+x2)/2),my=r1((y1+y2)/2);
   return `<g><path d="M${x1} ${y1} L${x2} ${y2} M${x1-nx} ${y1-ny} L${x1+nx} ${y1+ny} M${x2-nx} ${y2-ny} L${x2+nx} ${y2+ny}" stroke="#c8283c" stroke-width="1" fill="none"/><circle cx="${mx}" cy="${my}" r="7" fill="#c8283c"/><text x="${mx}" y="${r1(my+3.2)}" text-anchor="middle" font-size="9" font-weight="700" fill="#fff" font-family="Archivo,system-ui,sans-serif">${letter}</text></g>`;
 }
+/* mockup face + dos côte à côte, façon bibliothèque de mockups (style 'gray' ou 'color') */
+function mockupSVG(p,style,uid){
+  const parts=['front','back'].map(v=>{const r=build(Object.assign(pieceG(p),{view:v,flat:style}),(uid||'m')+v,null);return Object.assign(r,{b:bbOf([].concat(...Object.values(r.Z).map(ds=>[].concat(...ds.map(ptsOf)))))})});
+  const [f,b]=parts,gap=16,w1=f.b.x1-f.b.x0,w2=b.b.x1-b.b.x0,y0=Math.min(f.b.y0,b.b.y0),y1=Math.max(f.b.y1,b.b.y1);
+  return `<svg viewBox="0 ${r1(y0-6)} ${r1(w1+w2+gap+12)} ${r1(y1-y0+12)}" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Mockup face et dos"><defs>${f.defs}${b.defs}</defs><g transform="translate(${r1(6-f.b.x0)} 0)">${f.out}</g><g transform="translate(${r1(6+w1+gap-b.b.x0)} 0)">${b.out}</g></svg>`;
+}
 /* face : largeurs et manche ; dos : longueurs (longueur dos, montant + entrejambe) */
 function flatSVG(p,view){
   const {out,Z:ZD}=build(Object.assign(pieceG(p),{view,flat:true}),'f',null),F=view==='front',Lt={},d=[],Z={};
@@ -843,11 +849,20 @@ function build(G,uid,sel){
   const FZ={};
   L.forEach(x=>{
     if(G.flat){
+      /* line = trait noir (dessin technique), gray = mockup de bibliothèque, color = mockup aux couleurs de la pièce */
+      const st=G.flat===true?'line':G.flat;
       if(typeof x==='string')return;
-      if(x.t==='p'){if(x.id[0]==='a')return;(FZ[x.id]=FZ[x.id]||[]).push(x.d);out+=`<path d="${x.d}" fill="#fff" stroke="#111" stroke-width="1.2" stroke-linejoin="round"/>`}
-      else if(x.k==='zip')out+=`<path d="${x.d}" fill="none" stroke="#111" stroke-width="1.6" stroke-dasharray="1.2 1.6"/>`;
-      else if(x.k==='btn')out+=`<path d="${x.d}" fill="none" stroke="#111" stroke-width="3" stroke-linecap="round" stroke-dasharray="0.1 9"/>`;
-      else out+=`<path d="${x.d}" fill="none" stroke="#111" stroke-width="${x.k==='str'?1:.7}"${x.k==='str'?'':' stroke-dasharray="3 2"'}/>`;
+      if(x.t==='p'){
+        if(x.id[0]==='a')return;(FZ[x.id]=FZ[x.id]||[]).push(x.d);
+        const fl=st==='color'?C[x.id]:st==='gray'?'#d5d6d9':'#fff',sk=st==='line'?'#111':st==='gray'?'#3f4146':lum(fl)<.4?'#e9e9e6':'#2a2b2f',pk=PATZ[x.id];
+        out+=`<path d="${x.d}" fill="${fl}" stroke="${sk}" stroke-width="1.2" stroke-linejoin="round"/>`;
+        if(st==='color'&&pk&&PT[pk]!=='none')out+=`<path d="${x.d}" fill="url(#pat${pk[0]}${uid})" stroke="${sk}" stroke-width="1.2"/>`;
+        return;
+      }
+      const lc=st==='line'?'#111':st==='gray'?'#55575c':(x.b?C.stitchB:C.stitch);
+      if(x.k==='zip')out+=`<path d="${x.d}" fill="none" stroke="${lc}" stroke-width="1.6" stroke-dasharray="1.2 1.6"/>`;
+      else if(x.k==='btn')out+=`<path d="${x.d}" fill="none" stroke="${lc}" stroke-width="3" stroke-linecap="round" stroke-dasharray="0.1 9"/>`;
+      else out+=`<path d="${x.d}" fill="none" stroke="${lc}" stroke-width="${x.k==='str'?1:.7}"${x.k==='str'?'':' stroke-dasharray="3 2"'}/>`;
       return;
     }
     if(typeof x==='string'){out+=x;return}
@@ -860,7 +875,7 @@ function build(G,uid,sel){
     else if(x.k==='str')out+=`<path d="${x.d}" fill="none" stroke="#efece4" stroke-width="1.7" stroke-linecap="round" pointer-events="none"/>`;
     else out+=`<path d="${x.d}" fill="none" stroke="${x.b?C.stitchB:C.stitch}" stroke-width=".9" stroke-dasharray="3 2" pointer-events="none"/>`;
   });
-  if(G.flat)return {out,Z:FZ};
+  if(G.flat)return {out,Z:FZ,defs:G.flat==='color'?patDef(PT.top,C.tPat||'#f3f1ea','patt'+uid,50,260)+patDef(PT.bottom,C.bPat||'#f3f1ea','patb'+uid,250,480):''};
   const vb=only==='top'?(ZOOMP[top]||ZOOM.top):only==='bottom'?(ZOOMP[bot]||ZOOM.bottom):only==='acc'?(ZOOM.acc[G.accGroup||'head']||'0 -14 300 514'):'0 -14 300 514';
   return `<svg viewBox="${vb}" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Aperçu"><defs>${vol}${ovDef(G.fabric,'ov'+uid)}${ovDef(G.fabricB||G.fabric,'ovb'+uid)}${patDef(PT.top,C.tPat||'#f3f1ea','patt'+uid,50,260)}${patDef(PT.bottom,C.bPat||'#f3f1ea','patb'+uid,250,480)}</defs>${out}${hi}</svg>`;
 }
