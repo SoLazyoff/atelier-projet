@@ -334,6 +334,56 @@ function specRows(p){
   });
 }
 const cm=v=>String(v).replace('.',',');
+/* ---------- dessin technique à plat, coté ---------- */
+/* sommets réels d'un tracé (extrémités seulement, sans points de contrôle des courbes) */
+function vertsOf(d){const o=[];(d.match(/[MLQC][^MLQCZ]*/g)||[]).forEach(seg=>{const n=(seg.slice(1).match(/-?\d+(?:\.\d+)?/g)||[]).map(Number),st=seg[0]==='Q'?4:seg[0]==='C'?6:2;for(let i=0;i+st-1<n.length;i+=st)o.push([n[i+st-2],n[i+st-1]])});return o}
+const ptsOf=d=>{const n=(d.match(/-?\d+(?:\.\d+)?/g)||[]).map(Number),o=[];for(let i=0;i+1<n.length;i+=2)o.push([n[i],n[i+1]]);return o};
+function bbOf(pts){const b={x0:1e9,x1:-1e9,y0:1e9,y1:-1e9};pts.forEach(([x,y])=>{b.x0=Math.min(b.x0,x);b.x1=Math.max(b.x1,x);b.y0=Math.min(b.y0,y);b.y1=Math.max(b.y1,y)});return b}
+/* largeur d'un contour fermé à la hauteur y (points de contrôle pris comme sommets : approximation suffisante pour placer une cote) */
+function spanAt(pts,y){let a=1e9,b=-1e9;for(let i=0;i<pts.length;i++){const [x1,y1]=pts[i],[x2,y2]=pts[(i+1)%pts.length];if(y1!==y2&&(y1-y)*(y2-y)<=0){const x=x1+(y-y1)*(x2-x1)/(y2-y1);a=Math.min(a,x);b=Math.max(b,x)}}return a<b?[a,b]:null}
+const r1=v=>Math.round(v*10)/10;
+function dim(x1,y1,x2,y2,letter){
+  [x1,y1,x2,y2]=[x1,y1,x2,y2].map(r1);
+  const len=Math.hypot(x2-x1,y2-y1)||1,nx=r1(-(y2-y1)/len*4),ny=r1((x2-x1)/len*4),mx=r1((x1+x2)/2),my=r1((y1+y2)/2);
+  return `<g><path d="M${x1} ${y1} L${x2} ${y2} M${x1-nx} ${y1-ny} L${x1+nx} ${y1+ny} M${x2-nx} ${y2-ny} L${x2+nx} ${y2+ny}" stroke="#c8283c" stroke-width="1" fill="none"/><circle cx="${mx}" cy="${my}" r="7" fill="#c8283c"/><text x="${mx}" y="${r1(my+3.2)}" text-anchor="middle" font-size="9" font-weight="700" fill="#fff" font-family="Archivo,system-ui,sans-serif">${letter}</text></g>`;
+}
+/* face : largeurs et manche ; dos : longueurs (longueur dos, montant + entrejambe) */
+function flatSVG(p,view){
+  const {out,Z:ZD}=build(Object.assign(pieceG(p),{view,flat:true}),'f',null),F=view==='front',Lt={},d=[],Z={};
+  Object.keys(ZD).forEach(id=>Z[id]=ZD[id].map(ptsOf));
+  specRows(p).forEach(r=>Lt[r.k]=r.letter);
+  const has=k=>k in Lt,all=[].concat(...Object.values(Z).map(ps=>[].concat(...ps))),A=bbOf(all);
+  const big=id=>(Z[id]||[]).map((q,i)=>({q,b:bbOf(q),d:ZD[id][i]})).reduce((m,o)=>(o.b.x1-o.b.x0)*(o.b.y1-o.b.y0)>(m?(m.b.x1-m.b.x0)*(m.b.y1-m.b.y0):-1)?o:m,null);
+  if(p.cat==='top'&&Z.tBody){
+    const body=big('tBody'),bb=body.b;
+    if(!F&&has('L'))d.push(dim(A.x1+16,bb.y0,A.x1+16,bb.y1,Lt.L));
+    if(F){
+      if(has('E')){const xs=body.q.filter(q=>q[1]<=bb.y0+14).map(q=>q[0]);d.push(dim(Math.min(...xs),bb.y0-10,Math.max(...xs),bb.y0-10,Lt.E))}
+      if(has('P')){const y=bb.y0+46,sp=spanAt(body.q,y);if(sp)d.push(dim(sp[0],y,sp[1],y,Lt.P))}
+      if(has('B')){const sp=spanAt(body.q,bb.y1-3);if(sp)d.push(dim(sp[0],bb.y1+12,sp[1],bb.y1+12,Lt.B))}
+      const sl=(Z.tSleeve||[]).map(q=>({q,b:bbOf(q)})).sort((a,b)=>a.b.x0-b.b.x0)[0];
+      if(sl&&has('M')){const t=sl.q.reduce((m,q)=>q[1]<m[1]?q:m),u=sl.q.reduce((m,q)=>q[1]>m[1]||(q[1]===m[1]&&q[0]<m[0])?q:m);d.push(dim(t[0]-14,t[1]-4,u[0]-14,u[1],Lt.M))}
+      if(sl&&has('W')){const xs=sl.q.filter(q=>q[1]>=sl.b.y1-8).map(q=>q[0]);d.push(dim(Math.min(...xs),sl.b.y1+10,Math.max(...xs),sl.b.y1+10,Lt.W))}
+      if(has('H')&&Z.tCollar){const h=big('tCollar').b;d.push(dim(h.x1+10,h.y0,h.x1+10,h.y1,Lt.H))}
+    }
+  }else if(p.cat==='bottom'&&Z.bLegs){
+    const leg=big('bLegs'),lb=leg.b,legs=Z.bLegs;
+    const inner=vertsOf(leg.d).filter(q=>q[0]>=149&&q[1]>lb.y0+10),yc=inner.length?Math.max(...inner.map(q=>q[1])):null;
+    if(F){
+      if(has('T')){const xs=[].concat(...legs).filter(q=>q[1]>=lb.y0&&q[1]<=lb.y0+6).map(q=>q[0]);d.push(dim(Math.min(...xs),lb.y0-10,Math.max(...xs),lb.y0-10,Lt.T))}
+      if(has('H')){const y=lb.y0+40,sp=legs.map(q=>spanAt(q,y)).filter(Boolean);if(sp.length)d.push(dim(Math.min(...sp.map(s=>s[0])),y,Math.max(...sp.map(s=>s[1])),y,Lt.H))}
+      if(has('C'))d.push(dim(A.x0-16,lb.y0,A.x0-16,lb.y1,Lt.C));
+      if(has('K')&&yc){const sp=spanAt(leg.q,yc+10);if(sp)d.push(dim(sp[0],yc+10,sp[1],yc+10,Lt.K))}
+      if(has('O')){const sp=spanAt(leg.q,lb.y1-3);if(sp)d.push(dim(sp[0],lb.y1+12,sp[1],lb.y1+12,Lt.O))}
+      if(has('V')){const bib=legs.map(q=>({q,b:bbOf(q)})).sort((a,b)=>a.b.y0-b.b.y0)[0].b;d.push(dim(bib.x1+12,bib.y0,bib.x1+12,lb.y0+22,Lt.V))}
+    }else if(yc){
+      if(has('R'))d.push(dim(150,lb.y0,150,yc,Lt.R));
+      if(has('I'))d.push(dim(150,yc,150,lb.y1,Lt.I));
+    }
+  }
+  const vb=[A.x0-34,A.y0-30,A.x1-A.x0+68,A.y1-A.y0+66].map(r1).join(' ');
+  return `<svg viewBox="${vb}" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Dessin à plat ${F?'face':'dos'}">${out}${d.join('')}</svg>`;
+}
 /* cadrage du mode pièce pour les coupes qui sortent du cadre standard */
 const ZOOMP={denimlong:'0 30 300 300',balahood:'10 -14 280 280',overall:'40 40 220 450'};
 const ZOOM={top:'10 30 280 260',bottom:'40 190 220 295',acc:{head:'85 -14 130 120',glass:'95 -4 110 80',ear:'95 -4 110 80',neck:'90 30 120 150',bag:'20 40 260 240',wrist:'30 190 240 80',belt:'60 180 180 70',sock:'60 330 180 150',shoe:'40 400 220 90'}};
@@ -771,7 +821,16 @@ function build(G,uid,sel){
   const vol=`<linearGradient id="vol${uid}" x1="0" x2="1" y1="0" y2="0"><stop offset="0" stop-color="#000" stop-opacity=".3"/><stop offset=".28" stop-color="#000" stop-opacity="0"/><stop offset=".72" stop-color="#000" stop-opacity="0"/><stop offset="1" stop-color="#000" stop-opacity=".3"/></linearGradient>`;
   const PT=Object.assign({top:'none',bottom:'none'},G.pat||{});
   let out='',hi='';
+  const FZ={};
   L.forEach(x=>{
+    if(G.flat){
+      if(typeof x==='string')return;
+      if(x.t==='p'){if(x.id[0]==='a')return;(FZ[x.id]=FZ[x.id]||[]).push(x.d);out+=`<path d="${x.d}" fill="#fff" stroke="#111" stroke-width="1.2" stroke-linejoin="round"/>`}
+      else if(x.k==='zip')out+=`<path d="${x.d}" fill="none" stroke="#111" stroke-width="1.6" stroke-dasharray="1.2 1.6"/>`;
+      else if(x.k==='btn')out+=`<path d="${x.d}" fill="none" stroke="#111" stroke-width="3" stroke-linecap="round" stroke-dasharray="0.1 9"/>`;
+      else out+=`<path d="${x.d}" fill="none" stroke="#111" stroke-width="${x.k==='str'?1:.7}"${x.k==='str'?'':' stroke-dasharray="3 2"'}/>`;
+      return;
+    }
     if(typeof x==='string'){out+=x;return}
     if(x.t==='p'){
       const pk=PATZ[x.id];
@@ -782,6 +841,7 @@ function build(G,uid,sel){
     else if(x.k==='str')out+=`<path d="${x.d}" fill="none" stroke="#efece4" stroke-width="1.7" stroke-linecap="round" pointer-events="none"/>`;
     else out+=`<path d="${x.d}" fill="none" stroke="${x.b?C.stitchB:C.stitch}" stroke-width=".9" stroke-dasharray="3 2" pointer-events="none"/>`;
   });
+  if(G.flat)return {out,Z:FZ};
   const vb=only==='top'?(ZOOMP[top]||ZOOM.top):only==='bottom'?(ZOOMP[bot]||ZOOM.bottom):only==='acc'?(ZOOM.acc[G.accGroup||'head']||'0 -14 300 514'):'0 -14 300 514';
   return `<svg viewBox="${vb}" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Aperçu"><defs>${vol}${ovDef(G.fabric,'ov'+uid)}${ovDef(G.fabricB||G.fabric,'ovb'+uid)}${patDef(PT.top,C.tPat||'#f3f1ea','patt'+uid,50,260)}${patDef(PT.bottom,C.bPat||'#f3f1ea','patb'+uid,250,480)}</defs>${out}${hi}</svg>`;
 }

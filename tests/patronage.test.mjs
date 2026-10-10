@@ -46,3 +46,28 @@ test('la fiche d’une pièce contient la grille de mesures', () => {
   assert.match(txt, /- A\. Demi-tour de taille : 36 \/ 38 \/ 40 \/ 42 \/ 44 \(tolérance ±1\)/);
   assert.doesNotMatch(txt, /Entrejambe/);
 });
+
+const lettres = svg => [...svg.matchAll(/font-weight="700" fill="#fff"[^>]*>([A-Z])</g)].map(m => m[1]);
+
+for (const [cat, key] of [['top', 'TOPS'], ['bottom', 'BOTTOMS']]) {
+  test(`dessins à plat des ${cat === 'top' ? 'hauts' : 'bas'} : chaque repère coté une fois, sans valeur invalide`, () => {
+    for (const cut of Object.keys(t[key])) {
+      const p = { cat, [cat]: cut, c: {}, marks: [] };
+      const f = t.flatSVG(p, 'front'), b = t.flatSVG(p, 'back');
+      assert.doesNotMatch(f + b, /NaN|Infinity/, cut);
+      const vues = lettres(f).concat(lettres(b)).sort().join('');
+      const attendu = t.specRows(p).map(r => r.letter).join('');
+      assert.equal(vues, attendu, cut);
+      assert.doesNotMatch(f, /data-p=|url\(#/, `${cut} : pas de couleur ni d'ombrage`);
+    }
+  });
+}
+
+test('vertsOf ignore les points de contrôle des courbes', () => {
+  assert.equal(JSON.stringify(t.vertsOf('M97 214 L150 214 L152 330 Q152 404 142 438 Z')), '[[97,214],[150,214],[152,330],[142,438]]');
+});
+
+test("l'entrejambe du pantalon parachute part de l'entrejambe dessiné (y = 330)", () => {
+  const b = t.flatSVG({ cat: 'bottom', bottom: 'para', c: {}, marks: [] }, 'back');
+  assert.match(b, /M150 330 L150 452/);
+});
