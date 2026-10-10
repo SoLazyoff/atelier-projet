@@ -871,6 +871,25 @@ function collection(){
   </div>`;
 }
 
+/* ---------- onglet Lookbook ---------- */
+let lbSheetId=null,lbPending=null;
+const pieceById=id=>S.looks.find(l=>l.id===id&&l.kind==='piece');
+/* reconstruit la tenue d'un look à partir des pièces qu'il référence ; miss liste les emplacements dont la pièce a été retirée */
+function lookG(l,view){
+  let G={top:DEF.top,bottom:DEF.bottom,fabric:DEF.fabric,fabricB:DEF.fabricB,c:Object.assign({},DEF.c),acc:Object.assign({},ACC0,{glass:'none'}),marks:[]};
+  const miss=[];
+  [['top',l.top],['bottom',l.bottom]].concat(Object.entries(l.acc||{})).forEach(([slot,id])=>{if(id==null)return;const p=pieceById(id);if(p)G=mergePiece(G,p);else miss.push(slot)});
+  G.c=fixC(G.c);
+  return Object.assign(G,{view:view||'front',miss});
+}
+function lbUses(id){return S.lookbook.filter(l=>l.top===id||l.bottom===id||Object.values(l.acc||{}).includes(id)).length}
+function lbText(l){
+  const ids=[l.top,l.bottom].concat(Object.values(l.acc||{})).filter(x=>x!=null);
+  let t=`Lookbook : ${l.name}\nMarque : ${S.brand.name}\n`;
+  ids.forEach(id=>{const p=pieceById(id);t+='\n'+(p?sheetText(p):'(pièce retirée de la collection)\n')});
+  return t;
+}
+
 /* ---------- onglet Business ---------- */
 function biz(){
   const b=S.biz,f=(k,l,st)=>`<div class="field"><label for="b-${k}">${l}</label><input id="b-${k}" data-in="biz.${k}" type="number" inputmode="decimal" step="${st||'any'}" min="0" value="${b[k]}"></div>`;
