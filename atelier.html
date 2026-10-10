@@ -36,8 +36,9 @@ button,input,textarea{font-family:inherit}
 .mark{font-weight:850;font-stretch:125%;font-size:20px;letter-spacing:-.01em;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .sub{color:var(--mute);font-size:13px;white-space:nowrap}
 
-.tabs{position:fixed;left:0;right:0;bottom:0;z-index:6;display:grid;grid-template-columns:repeat(5,1fr);background:var(--bg);border-top:1px solid var(--line);padding-bottom:env(safe-area-inset-bottom,0px)}
-.tabs button{position:relative;background:none;border:0;color:var(--mute);padding:14px 2px 13px;font-weight:600;font-size:12.5px}
+.tabs{position:fixed;left:0;right:0;bottom:0;z-index:6;display:grid;grid-template-columns:repeat(6,1fr);background:var(--bg);border-top:1px solid var(--line);padding-bottom:env(safe-area-inset-bottom,0px)}
+.tabs button{position:relative;background:none;border:0;color:var(--mute);padding:14px 1px 13px;font-weight:600;font-size:12.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+@media (max-width:440px){.tabs button{font-size:11px}}
 .tabs button[aria-selected="true"]{color:var(--ink)}
 .tabs button[aria-selected="true"]::before{content:"";position:absolute;left:22%;right:22%;top:-1px;height:3px;background:var(--acc)}
 
@@ -64,6 +65,7 @@ h2:first-child{margin-top:4px}
 .seg2 button[aria-pressed="true"]{background:var(--ink);color:var(--bg)}
 .pcs .preset{flex:0 0 110px}
 .pcs .preset .th svg{height:130px}
+.preset[aria-pressed="true"]{border-color:var(--ink);box-shadow:0 0 0 2px var(--ink)}
 .hs{flex-wrap:nowrap;overflow-x:auto;margin:0 -16px;padding:0 16px 6px;scrollbar-width:none}
 .hs::-webkit-scrollbar{display:none}
 .hs .chip{flex:none;white-space:nowrap}
@@ -74,6 +76,7 @@ h2:first-child{margin-top:4px}
 .sw[aria-pressed="true"]{outline:2px solid var(--ink)}
 .colorin{width:34px;height:34px;padding:0;border:0;background:none;border-radius:50%;cursor:pointer}
 .primary{width:100%;background:var(--acc);color:var(--accInk);border:0;border-radius:10px;padding:14px;font-weight:700;font-size:16px}
+.primary:disabled{opacity:.45}
 .ghost{background:none;border:1px solid var(--line);color:var(--ink);border-radius:10px;padding:10px 14px;font-weight:600;font-size:14px}
 .row2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 
@@ -136,6 +139,7 @@ h2:first-child{margin-top:4px}
   <button role="tab" data-act="tab" data-t="mark">Marquage</button>
   <button role="tab" data-act="tab" data-t="brand">Marque</button>
   <button role="tab" data-act="tab" data-t="coll">Collection</button>
+  <button role="tab" data-act="tab" data-t="look">Lookbook</button>
   <button role="tab" data-act="tab" data-t="biz">Business</button>
 </nav>
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
@@ -890,6 +894,41 @@ function lbText(l){
   return t;
 }
 
+function copyText(txt){
+  const fb=()=>{try{const t=document.createElement('textarea');t.value=txt;t.style.position='fixed';t.style.opacity='0';document.body.appendChild(t);t.select();const ok=document.execCommand('copy');t.remove();toast(ok?'Fiche copiée':'Copie impossible : sélectionne le texte à la main')}catch(_){toast('Copie impossible : sélectionne le texte à la main')}};
+  try{navigator.clipboard.writeText(txt).then(()=>toast('Fiche copiée'),fb)}catch(_){fb()}
+}
+function lbRow(cat,title){
+  const d=S.lb,list=piecesOf(cat);
+  if(!list.length)return `<h2>${title}</h2><p class="small mute" style="margin:0">Rien d’enregistré dans cette catégorie.</p>`;
+  return `<h2>${title}</h2><div class="scroller pcs">${list.map(p=>{const on=cat==='acc'?d.acc[p.group]===p.id:d[cat]===p.id;return `<button class="preset" data-act="lbPick" data-k="${p.id}" aria-pressed="${on}"><div class="th">${pieceThumb(p,'lb'+p.id)}</div><span>${esc(p.name)}${cat==='acc'?`<br><small class="mute">${ACC[p.group].label}</small>`:''}</span></button>`}).join('')}</div>`;
+}
+function lbCard(l){
+  const G=lookG(l),n=G.miss.length;
+  return `<div class="look"><div class="th">${build(G,'lbc'+l.id,null)}</div><div class="in"><input data-in="lbname" data-id="${l.id}" value="${esc(l.name)}" aria-label="Nom du look" maxlength="40">${n?`<p class="small" style="margin:0 0 8px;color:var(--bad)">${n>1?n+' pièces retirées':'Une pièce retirée'} de la collection</p>`:''}<div class="acts"><button data-act="lbOpen" data-k="${l.id}">Atelier</button><button data-act="lbSheet" data-k="${l.id}">Fiche</button><button data-act="lbDel" data-k="${l.id}">${lbPending===l.id?'Confirmer':'Retirer'}</button></div></div></div>`;
+}
+function lookbook(){
+  const tops=piecesOf('top'),bots=piecesOf('bottom');
+  if(!tops.length||!bots.length)return `<div class="pad"><h2>Lookbook</h2><p class="mute">Il faut au moins un haut et un bas enregistrés pour composer un look. Crée-les dans l’Atelier, en mode « Pièce par pièce ».</p><button class="primary" data-act="tab" data-t="studio">Aller à l’Atelier</button></div>`;
+  const d=S.lb,ready=pieceById(d.top)&&pieceById(d.bottom),sh=S.lookbook.find(l=>l.id===lbSheetId);
+  const stage=`<section class="stage">
+    <div class="seg float-l" role="group" aria-label="Vue">
+      <button data-act="lbView" data-k="front" aria-pressed="${d.view==='front'}">Face</button>
+      <button data-act="lbView" data-k="back" aria-pressed="${d.view==='back'}">Dos</button>
+    </div>
+    <button class="roll" data-act="lbRandom">Au hasard</button>
+    ${build(lookG(d,d.view),'lbMain',null)}
+  </section>`;
+  return stage+`<div class="pad">
+    <button class="primary" data-act="lbSave"${ready?'':' disabled'}>${ready?'Ajouter au Lookbook':'Choisis un haut et un bas'}</button>
+    <p class="small mute" style="margin:10px 0 0;text-align:center">Touche une pièce pour l’ajouter au look, touche-la encore pour l’enlever.</p>
+    ${lbRow('top','Hauts')}${lbRow('bottom','Bas')}${lbRow('acc','Accessoires')}
+    <h2>Mes looks (${S.lookbook.length})</h2>
+    ${S.lookbook.length?`<div class="grid">${S.lookbook.map(lbCard).join('')}</div>`:`<p class="small mute" style="margin:0">Aucun look pour l’instant.</p>`}
+    ${sh?`<div class="sheet"><pre>${esc(lbText(sh))}</pre><button class="ghost" data-act="lbCopy" data-k="${sh.id}">Copier la fiche</button></div>`:''}
+  </div>`;
+}
+
 /* ---------- onglet Business ---------- */
 function biz(){
   const b=S.biz,f=(k,l,st)=>`<div class="field"><label for="b-${k}">${l}</label><input id="b-${k}" data-in="biz.${k}" type="number" inputmode="decimal" step="${st||'any'}" min="0" value="${b[k]}"></div>`;
@@ -973,7 +1012,7 @@ function marquage(){
 
 /* ---------- navigation ---------- */
 function renderTab(){
-  const v={studio,mark:marquage,brand,coll:collection,biz}[S.tab]||studio;
+  const v={studio,mark:marquage,brand,coll:collection,look:lookbook,biz}[S.tab]||studio;
   $('#app').innerHTML=v();
   document.querySelectorAll('#tabs button').forEach(b=>b.setAttribute('aria-selected',String(b.dataset.t===S.tab)));
   if(S.tab==='biz')bizCalc();
@@ -1048,11 +1087,32 @@ document.addEventListener('click',e=>{
       break;
     case 'copy':{
       const l=S.looks.find(x=>x.id==k);if(!l)return;
-      const txt=sheetText(l);
-      const fb=()=>{try{const t=document.createElement('textarea');t.value=txt;t.style.position='fixed';t.style.opacity='0';document.body.appendChild(t);t.select();const ok=document.execCommand('copy');t.remove();toast(ok?'Fiche copiée':'Copie impossible : sélectionne le texte à la main')}catch(_){toast('Copie impossible : sélectionne le texte à la main')}};
-      try{navigator.clipboard.writeText(txt).then(()=>toast('Fiche copiée'),fb)}catch(_){fb()}
-      return;
+      copyText(sheetText(l));return;
     }
+    case 'lbCopy':{const l=S.lookbook.find(x=>x.id==k);if(l)copyText(lbText(l));return}
+    case 'lbPick':{
+      const p=pieceById(+k),d=S.lb;if(!p)return;
+      if(p.cat==='acc'){if(d.acc[p.group]===p.id)delete d.acc[p.group];else d.acc[p.group]=p.id}
+      else d[p.cat]=d[p.cat]===p.id?null:p.id;
+      break;
+    }
+    case 'lbView':S.lb.view=k;break;
+    case 'lbRandom':{const pick=a=>a[Math.floor(Math.random()*a.length)],t=piecesOf('top'),b=piecesOf('bottom');if(t.length)S.lb.top=pick(t).id;if(b.length)S.lb.bottom=pick(b).id;break}
+    case 'lbSave':{
+      const d=S.lb;if(!pieceById(d.top)||!pieceById(d.bottom))return;
+      S.lookbook.push({id:Date.now(),name:'Look '+(S.lookbook.length+1),top:d.top,bottom:d.bottom,acc:Object.assign({},d.acc)});
+      toast('Look ajouté au Lookbook');break;
+    }
+    case 'lbOpen':{
+      const l=S.lookbook.find(x=>x.id==k);if(!l)return;const G=lookG(l);
+      Object.assign(S,{top:G.top,bottom:G.bottom,fabric:G.fabric,fabricB:G.fabricB,c:fixC(Object.assign({},ACCC,G.c)),acc:G.acc,marks:G.marks,mi:0,mode:'outfit',editId:null,view:'front',sel:'tBody'});
+      go('studio');return;
+    }
+    case 'lbSheet':lbSheetId=(lbSheetId==+k)?null:+k;break;
+    case 'lbDel':
+      if(lbPending==+k){S.lookbook=S.lookbook.filter(x=>x.id!=k);lbPending=null;if(lbSheetId==+k)lbSheetId=null}
+      else{lbPending=+k;setTimeout(()=>{if(lbPending==+k){lbPending=null;if(S.tab==='look')renderTab()}},3000)}
+      break;
     case 'mult':{S.biz.price=Math.round((Number(S.biz.cost)||0)*Number(k)*100)/100;break}
     default:return;
   }
@@ -1070,6 +1130,7 @@ document.addEventListener('input',e=>{
   if(k==='name'){S.brand.name=t.value;setHeader();refreshLogo();persist();return}
   if(k==='tag'){S.brand.tag=t.value;refreshLogo();persist();return}
   if(k==='manifesto'){S.brand.manifesto=t.value;persist();return}
+  if(k==='lbname'){const l=S.lookbook.find(x=>x.id==t.dataset.id);if(l)l.name=t.value;persist();return}
   if(k==='lname'){const l=S.looks.find(x=>x.id==t.dataset.id);if(l)l.name=t.value;persist();return}
   if(k.startsWith('biz.')){S.biz[k.slice(4)]=t.value===''?0:parseFloat(t.value);bizCalc();persist();return}
   if(k==='chk'){S.checks[t.dataset.id]=t.checked;persist();const sp=t.nextElementSibling;if(sp)sp.className=t.checked?'done':'';return}
