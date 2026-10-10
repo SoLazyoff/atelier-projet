@@ -1023,6 +1023,54 @@ function exportPdf(d){
   window.addEventListener('afterprint',done);
   window.print();
 }
+/* coupe une ligne en morceaux qui tiennent dans maxW (measure = largeur d'un texte) */
+function wrapText(t,maxW,measure){const out=[];let cur='';t.split(' ').forEach(w=>{const n=cur?cur+' '+w:w;if(cur&&measure(n)>maxW){out.push(cur);cur=w}else cur=n});if(cur)out.push(cur);return out.length?out:['']}
+const vbOf=svg=>{const m=svg.match(/viewBox="([^"]+)"/),v=(m?m[1]:'0 0 300 514').split(/\s+/).map(Number);return {w:v[2],h:v[3]}};
+async function svgImg(svg,w,h){const img=new Image();img.src='data:image/svg+xml;charset=utf-8,'+encodeURIComponent(svg.replace('<svg ',`<svg width="${w}" height="${h}" `));await img.decode();return img}
+/* même mise en page que la version imprimable, dessinée dans un canvas de 1240 px de large */
+async function sheetPng(d){
+  if(document.fonts&&document.fonts.ready)await document.fonts.ready;
+  const W=1240,P=64,BW=(W-2*P-24)/2,BH=720,TOP=170,FF="'Archivo',system-ui,sans-serif";
+  const cv=document.createElement('canvas'),x=cv.getContext('2d'),rows=[];
+  d.text.split('\n').forEach((t,i)=>{
+    if(!t.trim()){rows.push({gap:1});return}
+    const item=t.startsWith('- '),hx=(t.match(/\((#[0-9a-fA-F]{6})\)/)||[])[1],bold=!item&&(i===0||!t.includes(' : ')),ind=item&&hx?44:0;
+    x.font=`${bold?700:400} 28px ${FF}`;
+    wrapText(item?t.slice(2):t,W-2*P-ind,s=>x.measureText(s).width).forEach((l,j)=>rows.push({t:l,bold,ind,hx:j?null:hx}));
+  });
+  const TY=TOP+BH+70;
+  cv.width=W;cv.height=TY+rows.reduce((a,r)=>a+(r.gap?16:40),0)+P;
+  x.fillStyle='#fff';x.fillRect(0,0,W,cv.height);
+  x.fillStyle='#111';x.font=`800 52px ${FF}`;x.fillText(S.brand.name||'Ma marque',P,104);
+  x.font=`400 26px ${FF}`;x.textAlign='right';x.fillText('Fiche technique · '+today(),W-P,104);x.textAlign='left';
+  x.fillRect(P,128,W-2*P,4);
+  const svgs=sheetViews(d.G,'png');
+  for(let i=0;i<2;i++){
+    const bx=P+i*(BW+24),g=x.createLinearGradient(0,TOP,0,TOP+BH);g.addColorStop(0,'#e8e9ec');g.addColorStop(1,'#b2b5bb');
+    x.fillStyle=g;x.fillRect(bx,TOP,BW,BH);
+    const vb=vbOf(svgs[i]),k=Math.min(BW/vb.w,BH/vb.h),w=Math.round(vb.w*k),h=Math.round(vb.h*k);
+    x.drawImage(await svgImg(svgs[i],w,h),bx+(BW-w)/2,TOP+(BH-h)/2,w,h);
+    x.fillStyle='#111';x.font=`650 26px ${FF}`;x.textAlign='center';x.fillText(i?'Dos':'Face',bx+BW/2,TOP+BH+40);x.textAlign='left';
+  }
+  let y=TY;
+  rows.forEach(r=>{
+    if(r.gap){y+=16;return}
+    y+=40;
+    if(r.hx){x.fillStyle=r.hx;x.fillRect(P,y-26,28,28);x.strokeStyle='#0006';x.lineWidth=1.5;x.strokeRect(P,y-26,28,28)}
+    x.fillStyle='#111';x.font=`${r.bold?700:400} 28px ${FF}`;x.fillText(r.t,P+r.ind,y);
+  });
+  return new Promise(res=>cv.toBlob(res,'image/png'));
+}
+/* partage natif quand le téléphone sait envoyer un fichier (WhatsApp, mail…), sinon téléchargement */
+async function exportPng(d){
+  toast('Préparation de l’image…');
+  let blob;try{blob=await sheetPng(d)}catch(e){toast('Image impossible ici : utilise PDF');return}
+  const name=fileName(d.name,'png'),file=new File([blob],name,{type:'image/png'});
+  try{if(navigator.canShare&&navigator.canShare({files:[file]})){await navigator.share({files:[file],title:d.name});return}}
+  catch(e){if(e&&e.name==='AbortError')return}
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name;document.body.appendChild(a);a.click();a.remove();
+  setTimeout(()=>URL.revokeObjectURL(a.href),4000);toast('Image enregistrée');
+}
 function sheetButtons(kind,id,copyAct){return `<div class="row3"><button class="ghost" data-act="${copyAct}" data-k="${id}">Copier</button><button class="ghost" data-act="shImg" data-kind="${kind}" data-k="${id}">Image</button><button class="ghost" data-act="shPdf" data-kind="${kind}" data-k="${id}">PDF</button></div>`}
 function copyText(txt){
   const fb=()=>{try{const t=document.createElement('textarea');t.value=txt;t.style.position='fixed';t.style.opacity='0';document.body.appendChild(t);t.select();const ok=document.execCommand('copy');t.remove();toast(ok?'Fiche copiée':'Copie impossible : sélectionne le texte à la main')}catch(_){toast('Copie impossible : sélectionne le texte à la main')}};
@@ -1220,6 +1268,7 @@ document.addEventListener('click',e=>{
       const l=S.looks.find(x=>x.id==k);if(!l)return;
       copyText(sheetText(l));return;
     }
+    case 'shImg':{const d=sheetData(el.dataset.kind,k);if(d)exportPng(d);return}
     case 'shPdf':{const d=sheetData(el.dataset.kind,k);if(d)exportPdf(d);return}
     case 'lbCopy':{const l=S.lookbook.find(x=>x.id==k);if(l)copyText(lbText(l));return}
     case 'lbPick':{

@@ -39,3 +39,19 @@ test('le nom de fichier est sûr et lisible', () => {
   assert.equal(t.fileName('Hoodie Été / 2', 'png'), 'fiche-hoodie-ete-2.png');
   assert.equal(t.fileName('***', 'pdf'), 'fiche-piece.pdf');
 });
+
+test("wrapText coupe aux espaces sans dépasser la largeur", () => {
+  const t = charger();
+  const mesure = s => s.length * 10;
+  const l = t.wrapText('Motif (corps et manches) : Rayures, Blanc cassé (#f3f1ea)', 200, mesure);
+  assert.ok(l.length > 1);
+  assert.ok(l.every(x => mesure(x) <= 200 || !x.includes(' ')));
+  assert.equal(l.join(' '), 'Motif (corps et manches) : Rayures, Blanc cassé (#f3f1ea)');
+  assert.equal(t.wrapText('', 200, mesure).join(), '');
+});
+
+test('vbOf lit le cadrage du SVG pour garder les proportions', () => {
+  const t = charger();
+  const v = t.vbOf(t.build(Object.assign({}, t.S, { mode: 'piece', cat: 'top', top: 'denimlong' }), 'v', null));
+  assert.equal(`${v.w}x${v.h}`, '300x300');
+});
