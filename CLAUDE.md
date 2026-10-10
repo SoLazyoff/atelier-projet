@@ -1,7 +1,8 @@
 # Atelier : outil de création de marque de vêtements
 
 Un seul fichier : `atelier.html` (HTML + CSS + JS, aucune dépendance sauf Google Fonts). Pas de build.
-Tester : ouvrir le fichier dans un navigateur. Les données sont dans le localStorage (clé `atelier-marque-v1`).
+Tester : ouvrir le fichier dans un navigateur, et lancer `node --test tests/*.test.mjs` (fonctions pures, faux DOM dans `tests/charger.mjs`).
+En ligne : https://solazyoff.github.io/atelier-projet/ (GitHub Pages, branche `main`). Les données sont dans le localStorage (clé `atelier-marque-v1`).
 Langue de l'interface : français. Le téléphone est la cible principale (mobile d'abord).
 
 ## Structure du script (dans l'ordre du fichier)
@@ -9,7 +10,8 @@ Langue de l'interface : français. Le téléphone est la cible principale (mobil
 - État : objet global `S` (chargé par `load()`, sauvegardé par `persist()`).
   Champs clés : `mode` (`piece` ou `outfit`), `cat` (`top`/`bottom`/`acc`), `top`, `bottom`, `fabric` (haut), `fabricB` (bas), `c` (couleurs par zone), `acc`, `marks` (logos), `looks` (collection : pièces `kind:'piece'` et tenues), `brand`, `biz`.
 - Rendu : `build(G, uid, sel)` génère le SVG du mannequin. Les zones colorables ont un `id` (`tBody`, `bLegs`, `aHead`…). `ZOOM` gère le cadrage en mode pièce.
-- Onglets : `studio()` (Atelier), `marquage()` (logos brodés/imprimés), `brand()` (Marque), `collection()`, `biz()` (Business). `renderTab()` choisit l'onglet.
+- Onglets : `studio()` (Atelier), `marquage()` (logos brodés/imprimés), `brand()` (Marque), `collection()`, `lookbook()`, `biz()` (Business).
+- Lookbook : `S.lookbook` contient des looks qui **référencent** des pièces par id (`top`, `bottom`, `acc:{groupe:id}`), sans copier leurs couleurs. `lookG()` les reconstruit via `mergePiece()` ; une pièce supprimée apparaît dans `miss`. `S.lb` = look en cours de composition. `renderTab()` choisit l'onglet.
 - Événements : un seul écouteur `click` (attributs `data-act`, `data-k`) et un seul `input` (attribut `data-in`).
 
 ## Règles pour modifier
