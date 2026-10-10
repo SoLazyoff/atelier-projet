@@ -22,3 +22,13 @@ for (const k of Object.keys(t.BOTTOMS)) {
     }
   });
 }
+
+test('la bavette de salopette passe sur un t-shirt mais sous une veste', () => {
+  const bavette = 'M112 112 L188 112 L192 214 L108 214 Z';
+  const ordre = (top) => {
+    const svg = t.build(Object.assign({}, t.S, { mode: 'outfit', top, bottom: 'overall', view: 'front' }), 'o', null);
+    return svg.indexOf(bavette) > svg.lastIndexOf('data-p="tBody"');
+  };
+  assert.equal(ordre('tshirt'), true);
+  assert.equal(ordre('bomber'), false);
+});

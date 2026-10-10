@@ -179,6 +179,7 @@ const BOTTOMS={
   taper:{label:'Pantalon fuselé',zones:{bLegs:'Jambes',bStripe:'Bande latérale',bAccent:'Empiècement',bTrim:'Taille et chevilles'}},
   short:{label:'Short',zones:{bLegs:'Short',bStripe:'Bande latérale',bAccent:'Poche',bTrim:'Taille et ourlets'}},
   bermuda:{label:'Bermuda cargo',zones:{bLegs:'Bermuda',bStripe:'Côtés',bAccent:'Poches',bTrim:'Ceinture et ourlets'}},
+  overall:{label:'Salopette',zones:{bLegs:'Jambes et bavette',bStripe:'Bretelles',bAccent:'Poche bavette',bTrim:'Boucles et ourlets'}},
   skirt:{label:'Jupe',zones:{bLegs:'Jupe',bStripe:'Panneau central',bAccent:'Poches',bTrim:'Ceinture et ourlet'}},
   pleated:{label:'Pantalon à pinces',zones:{bLegs:'Jambes',bStripe:'Pli central',bAccent:'Revers',bTrim:'Ceinture'}},
   flare:{label:'Pantalon flare',zones:{bLegs:'Jambes',bStripe:'Bande latérale',bAccent:'Empiècement genoux',bTrim:'Ceinture'}}
@@ -284,7 +285,7 @@ const QUICK=[
 const MARKCAT={'chest-l':'top','chest-r':'top','chest-c':'top','belly':'top','sleeve-l':'top','sleeve-r':'top','nape':'top','back-c':'top','back-low':'top','thigh-l':'bottom','thigh-r':'bottom','pocket-l':'bottom','pocket-r':'bottom','cap':'acc'};
 const CATS={top:'Haut',bottom:'Bas',acc:'Accessoire'};
 /* cadrage du mode pièce pour les coupes qui sortent du cadre standard */
-const ZOOMP={denimlong:'0 30 300 300',balahood:'10 -14 280 280'};
+const ZOOMP={denimlong:'0 30 300 300',balahood:'10 -14 280 280',overall:'40 40 220 450'};
 const ZOOM={top:'10 30 280 260',bottom:'40 190 220 295',acc:{head:'85 -14 130 120',glass:'95 -4 110 80',ear:'95 -4 110 80',neck:'90 30 120 150',bag:'20 40 260 240',wrist:'30 190 240 80',belt:'60 180 180 70',sock:'60 330 180 150',shoe:'40 400 220 90'}};
 const DEF={
   mode:'piece',cat:'top',accGroup:'head',editId:null,fabricB:'leather',
@@ -408,6 +409,14 @@ function build(G,uid,sel){
   const bare=top==='tshirt'||top==='polo'||top==='jersey'||top==='vest'||top==='pufvest';
   const hooded=top==='hoodie'||top==='wind';
   const WB1='M96 204 L204 204 L204 226 L96 226 Z',WB2='M96 204 L204 204 L204 217 L96 217 Z';
+  /* bavette de salopette : par-dessus un haut porté dessous (t-shirt, sweat…), sous une veste */
+  const INNER=['tshirt','longsleeve','polo','crew','hoodie','balahood','jersey','shirt'];
+  const bibOver=showBot&&bot==='overall'&&(!showTop||INNER.includes(top));
+  const bib=()=>{const was=inBot;inBot=true;
+    add(P('bLegs','M96 196 L204 196 L205 224 L95 224 Z',0));
+    if(F)add(P('bLegs','M112 112 L188 112 L192 214 L108 214 Z',0),P('bAccent','M130 128 L170 128 L168 164 L132 164 Z',0),ln('M131 136 L169 136','seam'),P('bStripe','M112 114 L124 114 L134 62 L121 60 Z',1),P('bTrim','M110 106 L127 106 L126 121 L111 121 Z',1));
+    else add(P('bStripe','M120 60 L133 62 L176 206 L162 208 Z',1));
+    inBot=was};
   const cord=()=>{if(F)add(ln('M146 226 Q144 242 140 254','str'),ln('M154 226 Q156 242 160 254','str'))};
 
   add(`<ellipse cx="150" cy="478" rx="112" ry="9" fill="#000" opacity=".16"/>`);
@@ -463,6 +472,10 @@ function build(G,uid,sel){
     add(P('bTrim','M84 438 L142 438 L142 452 L84 452 Z',1),P('bTrim',WB1,0));cord();
     add(lm('M74 360 Q112 374 150 360','seam'),lm('M84 426 Q113 434 142 426','seam'));
     if(F)add(lm('M86 445 L80 462','str'));
+  }else if(bot==='overall'){
+    add(P('bLegs','M98 192 L150 192 L150 330 L144 452 L76 452 Q88 330 98 192 Z',1));
+    add(P('bTrim','M76 440 L144 440 L144 452 L76 452 Z',1),lm('M104 226 Q96 330 84 440','seam'));
+    if(!bibOver)bib();
   }else if(bot==='taper'){
     add(P('bLegs','M98 214 L150 214 L150 320 L138 452 L104 452 Q104 330 98 214 Z',1));
     add(P('bStripe','M98 214 L110 214 Q110 330 112 452 L104 452 Q104 330 98 214 Z',1));
@@ -670,6 +683,7 @@ function build(G,uid,sel){
   }
 
   }
+  if(bibOver)bib();
   /* marquages (logos) */
   (G.marks||[]).forEach(m=>{if(only&&MARKCAT[m.place]!==only)return;const t=drawMark(m,G,A,F);if(t)add(t)});
 
