@@ -180,6 +180,9 @@ const BOTTOMS={
   flare:{label:'Pantalon flare',zones:{bLegs:'Jambes',bStripe:'Bande latérale',bAccent:'Empiècement genoux',bTrim:'Ceinture'}}
 };
 const FABRICS={fleece:'Molleton',nylon:'Nylon',leather:'Cuir',denim:'Denim'};
+const PATS={none:'Uni',stripe:'Rayures',check:'Carreaux',camo:'Camouflage',grad:'Dégradé'};
+/* zones qui reçoivent le motif : le tissu principal ; cols, bords-côtes et bandes restent unis */
+const PATZ={tBody:'top',tSleeve:'top',bLegs:'bottom'};
 const ACC0={head:'none',glass:'wrap',ear:'none',neck:'none',bag:'none',wrist:'none',belt:'none',sock:'none',shoe:'sneaker'};
 const ACCC={aHead:'#111214',aGlass:'#17181b',aEar:'#e7b93c',aNeck:'#c8283c',aBag:'#111214',aWrist:'#b9bcc2',aBelt:'#111214',aSock:'#f3f1ea',aShoe:'#f4f4f2'};
 const ACC={
@@ -284,6 +287,7 @@ const DEF={
   brand:{name:'MA MARQUE',tag:'',vibes:['Streetwear'],logo:'bold',fg:'#f3f1ea',bg:'#111214',manifesto:''},
   looks:[],checks:{},marks:[],mi:0,
   lookbook:[],lb:{top:null,bottom:null,acc:{},view:'front'},
+  pat:{top:'none',bottom:'none'},
   biz:{cost:22,qty:30,fixed:150,ship:4.5,fee:3,price:65}
 };
 let S=load();
@@ -303,10 +307,11 @@ function load(){
       d.looks=Array.isArray(o.looks)?o.looks:[];
       d.checks=o.checks||{};
       d.lookbook=Array.isArray(o.lookbook)?o.lookbook:[];
+      d.pat=Object.assign({},DEF.pat,o.pat||{});
       d.lb=Object.assign({},DEF.lb,o.lb||{});d.lb.acc=Object.assign({},d.lb.acc);
     }
   }catch(e){}
-  d.c.stitchB=d.c.stitchB||d.c.stitch;
+  fixC(d.c);
   return d;
 }
 function persist(){try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}}
@@ -326,6 +331,14 @@ function ovDef(f,id){
   if(f==='denim')return `<pattern id="${id}" width="3" height="3" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><line x1="0" y1="0" x2="0" y2="3" stroke="#fff" stroke-width=".9" opacity=".17"/><line x1="1.5" y1="0" x2="1.5" y2="3" stroke="#000" stroke-width=".6" opacity=".12"/></pattern>`;
   if(f==='nylon')return `<linearGradient id="${id}" gradientUnits="userSpaceOnUse" x1="40" y1="40" x2="260" y2="330"><stop offset="0" stop-color="#fff" stop-opacity="0"/><stop offset=".32" stop-color="#fff" stop-opacity=".42"/><stop offset=".48" stop-color="#fff" stop-opacity="0"/><stop offset="1" stop-color="#000" stop-opacity=".2"/></linearGradient>`;
   return `<linearGradient id="${id}" gradientUnits="userSpaceOnUse" x1="60" y1="60" x2="240" y2="260"><stop offset="0" stop-color="#fff" stop-opacity="0"/><stop offset=".2" stop-color="#fff" stop-opacity=".55"/><stop offset=".28" stop-color="#fff" stop-opacity="0"/><stop offset=".7" stop-color="#fff" stop-opacity="0"/><stop offset=".78" stop-color="#fff" stop-opacity=".25"/><stop offset="1" stop-color="#000" stop-opacity=".3"/></linearGradient>`;
+}
+function patDef(k,col,id,y0,y1){
+  if(k==='stripe')return `<pattern id="${id}" width="12" height="12" patternUnits="userSpaceOnUse"><rect width="12" height="5" fill="${col}"/></pattern>`;
+  if(k==='check')return `<pattern id="${id}" width="22" height="22" patternUnits="userSpaceOnUse"><rect width="22" height="9" fill="${col}" opacity=".5"/><rect width="9" height="22" fill="${col}" opacity=".5"/><rect y="15" width="22" height="1.2" fill="${col}" opacity=".85"/><rect x="15" width="1.2" height="22" fill="${col}" opacity=".85"/></pattern>`;
+  if(k==='camo'){const dk=mixHex(col,-.45),b=['M4 10 Q14 2 24 8 Q30 16 22 22 Q12 26 6 20 Z','M38 4 Q50 0 58 8 Q62 18 52 20 Q42 18 38 10 Z','M30 34 Q42 28 52 36 Q56 46 46 50 Q34 52 28 44 Z','M2 40 Q12 34 18 42 Q20 54 10 58 Q0 56 2 46 Z','M48 54 Q58 50 64 58 L64 64 L44 64 Q42 58 48 54 Z','M18 26 Q26 24 28 32 Q24 38 16 34 Z'];
+    return `<pattern id="${id}" width="64" height="64" patternUnits="userSpaceOnUse">${b.map((d,i)=>`<path d="${d}" fill="${i%2?dk:col}"/>`).join('')}</pattern>`}
+  if(k==='grad')return `<linearGradient id="${id}" gradientUnits="userSpaceOnUse" x1="0" y1="${y0}" x2="0" y2="${y1}"><stop offset="0" stop-color="${col}" stop-opacity="0"/><stop offset="1" stop-color="${col}"/></linearGradient>`;
+  return '';
 }
 function mixHex(h,t){const c=hexRgb(h).map(v=>t<0?v*(1+t):v+(255-v)*t);return '#'+c.map(v=>Math.max(0,Math.min(255,Math.round(v))).toString(16).padStart(2,'0')).join('')}
 function lum(h){const c=hexRgb(h);return (0.299*c[0]+0.587*c[1]+0.114*c[2])/255}
@@ -650,11 +663,13 @@ function build(G,uid,sel){
   }
   if(A.wrist==='rings')add(`<g data-p="aWrist" fill="none" stroke="${C.aWrist}" stroke-width="1.6"><circle cx="58" cy="242" r="2.4"/><circle cx="66" cy="244" r="2.4"/><circle cx="234" cy="242" r="2.4"/><circle cx="242" cy="244" r="2.4"/></g>`);
   const vol=`<linearGradient id="vol${uid}" x1="0" x2="1" y1="0" y2="0"><stop offset="0" stop-color="#000" stop-opacity=".3"/><stop offset=".28" stop-color="#000" stop-opacity="0"/><stop offset=".72" stop-color="#000" stop-opacity="0"/><stop offset="1" stop-color="#000" stop-opacity=".3"/></linearGradient>`;
+  const PT=Object.assign({top:'none',bottom:'none'},G.pat||{});
   let out='',hi='';
   L.forEach(x=>{
     if(typeof x==='string'){out+=x;return}
     if(x.t==='p'){
-      out+=`<path data-p="${x.id}" d="${x.d}" fill="${C[x.id]}" stroke="${x.id[0]==='b'?C.stitchB:C.stitch}" stroke-width="1.1" stroke-linejoin="round"/><path d="${x.d}" fill="url(#vol${uid})" pointer-events="none"/>${x.id[0]==='a'?'':`<path d="${x.d}" fill="url(#ov${x.id[0]==='b'?'b':''}${uid})" pointer-events="none"/>`}`;
+      const pk=PATZ[x.id];
+      out+=`<path data-p="${x.id}" d="${x.d}" fill="${C[x.id]}" stroke="${x.id[0]==='b'?C.stitchB:C.stitch}" stroke-width="1.1" stroke-linejoin="round"/>${pk&&PT[pk]!=='none'?`<path d="${x.d}" fill="url(#pat${pk[0]}${uid})" pointer-events="none"/>`:''}<path d="${x.d}" fill="url(#vol${uid})" pointer-events="none"/>${x.id[0]==='a'?'':`<path d="${x.d}" fill="url(#ov${x.id[0]==='b'?'b':''}${uid})" pointer-events="none"/>`}`;
       if(sel&&x.id===sel)hi+=`<path d="${x.d}" fill="none" stroke="#0a84ff" stroke-width="2.2" stroke-dasharray="5 3" pointer-events="none"/>`;
     }else if(x.k==='zip')out+=`<path d="${x.d}" fill="none" stroke="#d9dbe0" stroke-width="2.6" stroke-dasharray="1.3 1.6" pointer-events="none"/><path d="${x.d}" fill="none" stroke="#6b6f76" stroke-width=".6" pointer-events="none"/>`;
     else if(x.k==='btn')out+=`<path d="${x.d}" fill="none" stroke="#ece9e0" stroke-width="3.2" stroke-linecap="round" stroke-dasharray="0.1 9" pointer-events="none"/>`;
@@ -662,37 +677,38 @@ function build(G,uid,sel){
     else out+=`<path d="${x.d}" fill="none" stroke="${x.b?C.stitchB:C.stitch}" stroke-width=".9" stroke-dasharray="3 2" pointer-events="none"/>`;
   });
   const vb=only==='top'?ZOOM.top:only==='bottom'?ZOOM.bottom:only==='acc'?(ZOOM.acc[G.accGroup||'head']||'0 -14 300 514'):'0 -14 300 514';
-  return `<svg viewBox="${vb}" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Aperçu"><defs>${vol}${ovDef(G.fabric,'ov'+uid)}${ovDef(G.fabricB||G.fabric,'ovb'+uid)}</defs>${out}${hi}</svg>`;
+  return `<svg viewBox="${vb}" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Aperçu"><defs>${vol}${ovDef(G.fabric,'ov'+uid)}${ovDef(G.fabricB||G.fabric,'ovb'+uid)}${patDef(PT.top,C.tPat||'#f3f1ea','patt'+uid,50,260)}${patDef(PT.bottom,C.bPat||'#f3f1ea','patb'+uid,250,480)}</defs>${out}${hi}</svg>`;
 }
 
 /* ---------- onglet Atelier ---------- */
+const patOn=(G,k)=>!!(G.pat&&G.pat[k]&&G.pat[k]!=='none');
 function zonesOf(G){
   if(G.mode==='piece'){
-    if(G.cat==='top')return Object.assign({},TOPS[G.top].zones,{stitch:'Surpiqûres'});
-    if(G.cat==='bottom')return Object.assign({},BOTTOMS[G.bottom].zones,{stitchB:'Surpiqûres'});
+    if(G.cat==='top')return Object.assign({},TOPS[G.top].zones,{stitch:'Surpiqûres'},patOn(G,'top')?{tPat:'Motif'}:{});
+    if(G.cat==='bottom')return Object.assign({},BOTTOMS[G.bottom].zones,{stitchB:'Surpiqûres'},patOn(G,'bottom')?{bPat:'Motif'}:{});
     const g=G.accGroup||'head';return {[ACC[g].z]:AZL[ACC[g].z]};
   }
   const A=Object.assign({},ACC0,G.acc||{});
-  const z=Object.assign({},TOPS[G.top].zones,BOTTOMS[G.bottom].zones,{stitch:'Surpiqûres',stitchB:'Surpiqûres du bas'});
+  const z=Object.assign({},TOPS[G.top].zones,BOTTOMS[G.bottom].zones,{stitch:'Surpiqûres',stitchB:'Surpiqûres du bas'},patOn(G,'top')?{tPat:'Motif du haut'}:{},patOn(G,'bottom')?{bPat:'Motif du bas'}:{});
   Object.keys(ACC).forEach(g=>{if(g==='shoe'||A[g]!=='none')z[ACC[g].z]=AZL[ACC[g].z]});
   return z;
 }
-function fixC(c){c.stitchB=c.stitchB||c.stitch;return c}
-function pieceG(p){return {mode:'piece',cat:p.cat,accGroup:p.group,top:p.top,bottom:p.bottom,fabric:p.fabric,fabricB:p.fabricB||p.fabric,c:p.c,acc:p.cat==='acc'?{[p.group]:p.opt}:{},marks:p.marks,view:'front'}}
+function fixC(c){c.stitchB=c.stitchB||c.stitch;c.tPat=c.tPat||'#f3f1ea';c.bPat=c.bPat||'#f3f1ea';return c}
+function pieceG(p){return {pat:{[p.cat]:p.pat||'none'},mode:'piece',cat:p.cat,accGroup:p.group,top:p.top,bottom:p.bottom,fabric:p.fabric,fabricB:p.fabricB||p.fabric,c:p.c,acc:p.cat==='acc'?{[p.group]:p.opt}:{},marks:p.marks,view:'front'}}
 function pieceThumb(p,uid){return build(pieceG(p),uid,null)}
 function makePiece(){
   const cat=S.cat,id=Date.now(),mk=c=>S.marks.filter(m=>MARKCAT[m.place]===c).map(m=>Object.assign({},m));
   const cnt=S.looks.filter(l=>l.kind==='piece'&&l.cat===cat).length+1;
-  if(cat==='top'){const c={};Object.keys(TOPS[S.top].zones).concat('stitch').forEach(k=>c[k]=S.c[k]);return {id,kind:'piece',cat,name:TOPS[S.top].label+' '+cnt,top:S.top,fabric:S.fabric,c,marks:mk('top')}}
-  if(cat==='bottom'){const c={};Object.keys(BOTTOMS[S.bottom].zones).concat('stitchB').forEach(k=>c[k]=S.c[k]);return {id,kind:'piece',cat,name:BOTTOMS[S.bottom].label+' '+cnt,bottom:S.bottom,fabric:S.fabricB,fabricB:S.fabricB,c,marks:mk('bottom')}}
+  if(cat==='top'){const c={};Object.keys(TOPS[S.top].zones).concat('stitch','tPat').forEach(k=>c[k]=S.c[k]);return {id,kind:'piece',cat,name:TOPS[S.top].label+' '+cnt,top:S.top,fabric:S.fabric,pat:S.pat.top,c,marks:mk('top')}}
+  if(cat==='bottom'){const c={};Object.keys(BOTTOMS[S.bottom].zones).concat('stitchB','bPat').forEach(k=>c[k]=S.c[k]);return {id,kind:'piece',cat,name:BOTTOMS[S.bottom].label+' '+cnt,bottom:S.bottom,fabric:S.fabricB,fabricB:S.fabricB,pat:S.pat.bottom,c,marks:mk('bottom')}}
   const g=S.accGroup,z=ACC[g].z;return {id,kind:'piece',cat:'acc',name:ACC[g].opts[S.acc[g]]+' '+cnt,group:g,opt:S.acc[g],c:{[z]:S.c[z]},marks:g==='head'?mk('acc'):[]};
 }
 /* fusionne une pièce dans une tenue sans toucher à S : sert à l'Atelier et au Lookbook */
 function mergePiece(G,p){
-  const o={top:G.top,bottom:G.bottom,fabric:G.fabric,fabricB:G.fabricB,c:Object.assign({},G.c),acc:Object.assign({},G.acc),marks:(G.marks||[]).slice()};
+  const o={top:G.top,bottom:G.bottom,fabric:G.fabric,fabricB:G.fabricB,pat:Object.assign({top:'none',bottom:'none'},G.pat),c:Object.assign({},G.c),acc:Object.assign({},G.acc),marks:(G.marks||[]).slice()};
   const keep=c=>o.marks.filter(m=>MARKCAT[m.place]!==c),norm=ms=>(ms||[]).map(m=>Object.assign({},DEFMARK,m));
-  if(p.cat==='top'){o.top=p.top;o.fabric=p.fabric;Object.assign(o.c,p.c);o.marks=keep('top').concat(norm(p.marks))}
-  else if(p.cat==='bottom'){o.bottom=p.bottom;o.fabricB=p.fabricB||p.fabric;Object.assign(o.c,p.c);o.marks=keep('bottom').concat(norm(p.marks))}
+  if(p.cat==='top'){o.top=p.top;o.fabric=p.fabric;o.pat.top=p.pat||'none';Object.assign(o.c,p.c);o.marks=keep('top').concat(norm(p.marks))}
+  else if(p.cat==='bottom'){o.bottom=p.bottom;o.fabricB=p.fabricB||p.fabric;o.pat.bottom=p.pat||'none';Object.assign(o.c,p.c);o.marks=keep('bottom').concat(norm(p.marks))}
   else{o.acc[p.group]=p.opt;Object.assign(o.c,p.c);if(p.group==='head')o.marks=keep('acc').concat(norm(p.marks))}
   return o;
 }
@@ -774,6 +790,7 @@ function randomLook(){
   const h=()=>Math.random()<.5;
   S.c={tBody:A,tSleeve:h()?A:B,tAccent:B,tCollar:A,tTrim:h()?A:Cc,bLegs:h()?A:'#111214',bStripe:B,bAccent:h()?B:A,bTrim:Cc,stitch:pick(['#f3f1ea','#111214',Cc]),aHead:pick([A,B,'#111214']),aGlass:'#17181b',aEar:pick(['#e7b93c','#b9bcc2']),aNeck:pick([B,Cc]),aBag:pick(['#111214',A,B]),aWrist:pick(['#b9bcc2','#111214',Cc]),aBelt:pick(['#111214',A,B]),aSock:pick(['#f3f1ea','#111214',B]),aShoe:pick(['#f4f4f2','#111214',B])};
   S.acc={};Object.keys(ACC).forEach(g=>{S.acc[g]=pick(Object.keys(ACC[g].opts))});
+  S.c.tPat=Cc;S.c.bPat=B;
 }
 
 /* ---------- onglet Marque ---------- */
@@ -861,7 +878,7 @@ function sheetText(L){
 }
 function lookCard(l){
   const isP=l.kind==='piece';
-  const th=isP?pieceThumb(l,'c'+l.id):build({top:l.top,bottom:l.bottom,fabric:l.fabric,fabricB:l.fabricB,view:'front',c:l.c,acc:l.acc,marks:l.marks},'c'+l.id,null);
+  const th=isP?pieceThumb(l,'c'+l.id):build({top:l.top,bottom:l.bottom,fabric:l.fabric,fabricB:l.fabricB,pat:l.pat,view:'front',c:l.c,acc:l.acc,marks:l.marks},'c'+l.id,null);
   return `<div class="look"><div class="th">${th}</div><div class="in"><input data-in="lname" data-id="${l.id}" value="${esc(l.name)}" aria-label="Nom" maxlength="40"><div class="acts"><button data-act="${isP?'openPiece':'openLook'}" data-k="${l.id}">Ouvrir</button>${isP?`<button data-act="usePiece" data-k="${l.id}">Dans la tenue</button>`:''}<button data-act="sheet" data-k="${l.id}">Fiche</button><button data-act="del" data-k="${l.id}">${pendingDel===l.id?'Confirmer':'Retirer'}</button></div></div></div>`;
 }
 function collection(){
@@ -1049,11 +1066,11 @@ document.addEventListener('click',e=>{
     case 'top':S.top=k;break;
     case 'bottom':S.bottom=k;break;
     case 'fabric':S.fabric=k;break;
-    case 'preset':{const p=PRESETS[+k];S.top=p.top;S.bottom=p.bottom;S.fabric=p.fabric;S.fabricB=p.fabric;S.c=fixC(Object.assign({},S.c,p.c,{stitchB:p.c.stitch}));S.acc=Object.assign({},ACC0,p.acc||{});break}
+    case 'preset':{const p=PRESETS[+k];S.pat=Object.assign({},DEF.pat);S.top=p.top;S.bottom=p.bottom;S.fabric=p.fabric;S.fabricB=p.fabric;S.c=fixC(Object.assign({},S.c,p.c,{stitchB:p.c.stitch}));S.acc=Object.assign({},ACC0,p.acc||{});break}
     case 'acc':S.acc[el.dataset.g]=k;if(k!=='none'&&el.dataset.g!=='shoe')S.sel=ACC[el.dataset.g].z;break;
     case 'save':{
       const n=S.looks.filter(l=>l.kind!=='piece').length+1;
-      S.looks.push({id:Date.now(),kind:'outfit',name:'Tenue '+n,top:S.top,bottom:S.bottom,fabric:S.fabric,fabricB:S.fabricB,c:Object.assign({},S.c),acc:Object.assign({},S.acc),marks:JSON.parse(JSON.stringify(S.marks))});
+      S.looks.push({id:Date.now(),kind:'outfit',name:'Tenue '+n,top:S.top,bottom:S.bottom,fabric:S.fabric,fabricB:S.fabricB,pat:Object.assign({},S.pat),c:Object.assign({},S.c),acc:Object.assign({},S.acc),marks:JSON.parse(JSON.stringify(S.marks))});
       persist();toast('Tenue ajoutée à ta collection');return;
     }
     case 'mksel':S.mi=+k;{const mm=S.marks[S.mi];if(mm)S.view=PL[mm.place].v==='b'?'back':'front'}break;
@@ -1081,7 +1098,7 @@ document.addEventListener('click',e=>{
     case 'logo':S.brand.logo=k;break;
     case 'logoBg':S.brand.bg=k;break;
     case 'logoFg':S.brand.fg=k;break;
-    case 'openLook':{const l=S.looks.find(x=>x.id==k);if(l){S.top=l.top;S.bottom=l.bottom;S.fabric=l.fabric;S.fabricB=l.fabricB||l.fabric;S.mode='outfit';S.editId=null;S.c=fixC(Object.assign({},ACCC,l.c));S.acc=Object.assign({},ACC0,l.acc||{});S.marks=(l.marks||[]).map(m=>Object.assign({},DEFMARK,m));S.mi=0;S.view='front';go('studio')}return}
+    case 'openLook':{const l=S.looks.find(x=>x.id==k);if(l){S.top=l.top;S.bottom=l.bottom;S.fabric=l.fabric;S.fabricB=l.fabricB||l.fabric;S.pat=Object.assign({},DEF.pat,l.pat||{});S.mode='outfit';S.editId=null;S.c=fixC(Object.assign({},ACCC,l.c));S.acc=Object.assign({},ACC0,l.acc||{});S.marks=(l.marks||[]).map(m=>Object.assign({},DEFMARK,m));S.mi=0;S.view='front';go('studio')}return}
     case 'sheet':openSheet=(openSheet==+k)?null:+k;break;
     case 'del':
       if(pendingDel==+k){S.looks=S.looks.filter(x=>x.id!=k);pendingDel=null;if(openSheet==+k)openSheet=null;lbForget(+k)}
@@ -1107,7 +1124,7 @@ document.addEventListener('click',e=>{
     }
     case 'lbOpen':{
       const l=S.lookbook.find(x=>x.id==k);if(!l)return;const G=lookG(l);
-      Object.assign(S,{top:G.top,bottom:G.bottom,fabric:G.fabric,fabricB:G.fabricB,c:fixC(Object.assign({},ACCC,G.c)),acc:G.acc,marks:G.marks,mi:0,mode:'outfit',editId:null,view:'front',sel:'tBody'});
+      Object.assign(S,{top:G.top,bottom:G.bottom,fabric:G.fabric,fabricB:G.fabricB,pat:G.pat,c:fixC(Object.assign({},ACCC,G.c)),acc:G.acc,marks:G.marks,mi:0,mode:'outfit',editId:null,view:'front',sel:'tBody'});
       go('studio');return;
     }
     case 'lbSheet':lbSheetId=(lbSheetId==+k)?null:+k;break;
