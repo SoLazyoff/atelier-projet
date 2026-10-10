@@ -27,7 +27,7 @@ test('la fiche imprimable a la marque, face et dos, et une pastille par couleur'
     const d = t.sheetData(kind, id);
     const html = t.sheetHTML(d);
     assert.match(html, /<b>VANTA<\/b>/);
-    assert.equal((html.match(/<svg /g) || []).length, 2, `${kind} ${id}`);
+    assert.equal((html.match(/<svg /g) || []).length, d.flats ? 4 : 2, `${kind} ${id}`);
     const couleurs = (d.text.match(/\(#[0-9a-fA-F]{6}\)/g) || []).length;
     assert.ok(couleurs > 0);
     assert.equal((html.match(/class="psw"/g) || []).length, couleurs);
@@ -54,4 +54,14 @@ test('vbOf lit le cadrage du SVG pour garder les proportions', () => {
   const t = charger();
   const v = t.vbOf(t.build(Object.assign({}, t.S, { mode: 'piece', cat: 'top', top: 'denimlong' }), 'v', null));
   assert.equal(`${v.w}x${v.h}`, '300x300');
+});
+
+test("la fiche d'une pièce exporte aussi ses dessins à plat, pas celle d'une tenue", () => {
+  const t = avecCollection();
+  const piece = t.sheetData('look', 1), tenue = t.sheetData('look', 3);
+  assert.equal(piece.flats.length, 2);
+  assert.equal(tenue.flats, null);
+  assert.equal((t.sheetHTML(piece).match(/<svg /g) || []).length, 4);
+  assert.match(t.sheetHTML(piece), /Dessin à plat · dos/);
+  assert.equal((t.sheetHTML(tenue).match(/<svg /g) || []).length, 2);
 });

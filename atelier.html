@@ -101,6 +101,7 @@ table.spec{border-collapse:collapse;font-size:13px;min-width:100%}
   #print .views{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px;break-inside:avoid}
   #print figure{margin:0;background:linear-gradient(#e8e9ec,#b2b5bb);-webkit-print-color-adjust:exact;print-color-adjust:exact}
   #print figure svg{display:block;width:100%;height:105mm}
+  #print .flats figure{background:#fff;border:1px solid #bbb}
   #print figcaption{text-align:center;font-weight:650;padding:4px 0;background:#fff}
   #print p{margin:0}
   #print .h{font-weight:750;margin-top:8px}
@@ -1113,7 +1114,7 @@ function sheetData(kind,id){
   if(kind==='lb'){const l=S.lookbook.find(x=>x.id==id);return l&&{name:l.name,text:lbText(l),G:lookG(l)}}
   const l=S.looks.find(x=>x.id==id);if(!l)return null;
   const G=l.kind==='piece'?pieceG(l):{top:l.top,bottom:l.bottom,fabric:l.fabric,fabricB:l.fabricB||l.fabric,pat:l.pat,c:fixC(Object.assign({},ACCC,l.c)),acc:Object.assign({},ACC0,l.acc||{}),marks:l.marks};
-  return {name:l.name,text:sheetText(l),G};
+  return {name:l.name,text:sheetText(l),G,flats:l.kind==='piece'&&l.cat!=='acc'?['front','back'].map(v=>flatSVG(l,v)):null};
 }
 const sheetViews=(G,uid)=>['front','back'].map(v=>build(Object.assign({},G,{view:v}),uid+v,null));
 function fileName(n,ext){return 'fiche-'+(String(n).normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'')||'piece')+'.'+ext}
@@ -1128,7 +1129,8 @@ function sheetHTML(d){
     return `<p class="${i===0?'t':t.includes(' : ')?'':'h'}">${esc(t)}</p>`;
   }).join('');
   return `<header><b>${esc(S.brand.name||'Ma marque')}</b><span>Fiche technique · ${today()}</span></header>
-  <div class="views"><figure>${f}<figcaption>Face</figcaption></figure><figure>${b}<figcaption>Dos</figcaption></figure></div>${lines}`;
+  <div class="views"><figure>${f}<figcaption>Face</figcaption></figure><figure>${b}<figcaption>Dos</figcaption></figure></div>
+  ${d.flats?`<div class="views flats"><figure>${d.flats[0]}<figcaption>Dessin à plat · face</figcaption></figure><figure>${d.flats[1]}<figcaption>Dessin à plat · dos</figcaption></figure></div>`:''}${lines}`;
 }
 function exportPdf(d){
   const box=$('#print'),t0=document.title;
@@ -1152,7 +1154,7 @@ async function sheetPng(d){
     x.font=`${bold?700:400} 28px ${FF}`;
     wrapText(item?t.slice(2):t,W-2*P-ind,s=>x.measureText(s).width).forEach((l,j)=>rows.push({t:l,bold,ind,hx:j?null:hx}));
   });
-  const TY=TOP+BH+70;
+  const FH=d.flats?560:0,FT=TOP+BH+70,TY=FT+(FH?FH+70:0);
   cv.width=W;cv.height=TY+rows.reduce((a,r)=>a+(r.gap?16:40),0)+P;
   x.fillStyle='#fff';x.fillRect(0,0,W,cv.height);
   x.fillStyle='#111';x.font=`800 52px ${FF}`;x.fillText(S.brand.name||'Ma marque',P,104);
@@ -1165,6 +1167,12 @@ async function sheetPng(d){
     const vb=vbOf(svgs[i]),k=Math.min(BW/vb.w,BH/vb.h),w=Math.round(vb.w*k),h=Math.round(vb.h*k);
     x.drawImage(await svgImg(svgs[i],w,h),bx+(BW-w)/2,TOP+(BH-h)/2,w,h);
     x.fillStyle='#111';x.font=`650 26px ${FF}`;x.textAlign='center';x.fillText(i?'Dos':'Face',bx+BW/2,TOP+BH+40);x.textAlign='left';
+  }
+  if(d.flats)for(let i=0;i<2;i++){
+    const bx=P+i*(BW+24);x.fillStyle='#fff';x.fillRect(bx,FT,BW,FH);x.strokeStyle='#bbb';x.lineWidth=2;x.strokeRect(bx,FT,BW,FH);
+    const vb=vbOf(d.flats[i]),k=Math.min((BW-20)/vb.w,(FH-20)/vb.h),w=Math.round(vb.w*k),h=Math.round(vb.h*k);
+    x.drawImage(await svgImg(d.flats[i],w,h),bx+(BW-w)/2,FT+(FH-h)/2,w,h);
+    x.fillStyle='#111';x.font=`650 26px ${FF}`;x.textAlign='center';x.fillText('Dessin à plat · '+(i?'dos':'face'),bx+BW/2,FT+FH+40);x.textAlign='left';
   }
   let y=TY;
   rows.forEach(r=>{
