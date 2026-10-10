@@ -150,6 +150,7 @@ const KEY='atelier-marque-v1';
 const TOPS={
   bomber:{label:'Bomber',zones:{tBody:'Corps',tSleeve:'Manches',tAccent:'Empiècements',tCollar:'Col',tTrim:'Bords-côtes'}},
   hoodie:{label:'Hoodie',zones:{tBody:'Corps',tSleeve:'Manches',tAccent:'Poche kangourou',tCollar:'Capuche',tTrim:'Bords-côtes'}},
+  balahood:{label:'Hoodie à cagoule intégrée',zones:{tBody:'Corps',tSleeve:'Manches',tAccent:'Poche kangourou',tCollar:'Cagoule',tTrim:'Bords-côtes'}},
   track:{label:'Veste de survêt',zones:{tBody:'Corps',tSleeve:'Manches',tAccent:'Bandes latérales',tCollar:'Col montant',tTrim:'Bords-côtes'}},
   tshirt:{label:'T-shirt',zones:{tBody:'Corps',tSleeve:'Manches',tAccent:'Imprimé / empiècement',tCollar:'Col',tTrim:'Ourlets'}},
   longsleeve:{label:'T-shirt manches longues',zones:{tBody:'Corps',tSleeve:'Manches',tAccent:'Imprimé / empiècement',tCollar:'Col',tTrim:'Poignets et ourlet'}},
@@ -282,7 +283,7 @@ const QUICK=[
 const MARKCAT={'chest-l':'top','chest-r':'top','chest-c':'top','belly':'top','sleeve-l':'top','sleeve-r':'top','nape':'top','back-c':'top','back-low':'top','thigh-l':'bottom','thigh-r':'bottom','pocket-l':'bottom','pocket-r':'bottom','cap':'acc'};
 const CATS={top:'Haut',bottom:'Bas',acc:'Accessoire'};
 /* cadrage du mode pièce pour les coupes qui sortent du cadre standard */
-const ZOOMP={denimlong:'0 30 300 300'};
+const ZOOMP={denimlong:'0 30 300 300',balahood:'10 -14 280 280'};
 const ZOOM={top:'10 30 280 260',bottom:'40 190 220 295',acc:{head:'85 -14 130 120',glass:'95 -4 110 80',ear:'95 -4 110 80',neck:'90 30 120 150',bag:'20 40 260 240',wrist:'30 190 240 80',belt:'60 180 180 70',sock:'60 330 180 150',shoe:'40 400 220 90'}};
 const DEF={
   mode:'piece',cat:'top',accGroup:'head',editId:null,fabricB:'leather',
@@ -414,6 +415,10 @@ function build(G,uid,sel){
   /* tête, couvre-chef, lunettes */
   add(`<path d="M142 46 L158 46 L160 66 L140 66 Z" fill="${SKIN2}"/><ellipse cx="150" cy="30" rx="17" ry="21" fill="${SKIN}"/>`);
   add(F?`<path d="M132 26 Q130 6 150 7 Q170 6 168 26 Q150 14 132 26 Z" fill="#26272b"/>`:`<path d="M132 30 Q128 4 150 5 Q172 4 168 30 Q150 40 132 30 Z" fill="#26272b"/>`);
+  if(showTop&&top==='balahood'){
+    add(P('tCollar',F?'M127 30 Q123 -3 150 -5 Q177 -3 173 30 Q175 50 164 60 L174 68 Q150 78 126 68 L136 60 Q125 50 127 30 Z':'M127 30 Q123 -3 150 -5 Q177 -3 173 30 Q177 56 170 68 Q150 78 130 68 Q123 56 127 30 Z',0));
+    if(F)add(`<path d="M137 22 Q150 19 163 22 L163 35 Q150 38 137 35 Z" fill="${SKIN}" pointer-events="none"/>`);
+  }
   if(A.head==='cap'){add(P('aHead',F?'M131 25 Q131 3 150 2 Q169 3 169 25 Q150 19 131 25 Z':'M131 28 Q130 3 150 2 Q170 3 169 28 Q150 22 131 28 Z',0));if(F)add(P('aHead','M133 24 Q150 31 167 24 L178 30 Q150 40 122 30 Z',0))}
   else if(A.head==='beanie')add(P('aHead','M130 26 Q127 -4 150 -5 Q173 -4 170 26 Z',0),P('aHead','M129 20 L171 20 L171 31 L129 31 Z',0));
   else if(A.head==='bob')add(P('aHead','M133 22 Q134 0 150 0 Q166 0 167 22 Z',0),P('aHead','M120 22 Q150 32 180 22 L186 30 Q150 42 114 30 Z',0));
@@ -544,6 +549,11 @@ function build(G,uid,sel){
     add(P('tTrim','M91 194 Q150 199 209 194 L210 206 Q150 212 90 206 Z',0));
     if(F)add(ln('M143 70 L141 112','str'),ln('M157 70 L159 112','str'));
     else add(P('tCollar','M102 62 Q96 104 128 130 Q150 138 172 130 Q204 104 198 62 Q150 78 102 62 Z',0));
+  }else if(top==='balahood'){
+    add(P('tBody','M100 66 Q150 58 200 66 L208 108 L210 192 Q210 204 202 206 L98 206 Q90 204 90 192 L92 108 Z',0));
+    add(P('tAccent',F?'M110 134 Q150 120 190 134 Q198 170 188 198 L112 198 Q102 170 110 134 Z':'M112 100 Q150 86 188 100 Q198 150 182 196 L118 196 Q102 150 112 100 Z',0));
+    add(P('tTrim','M91 194 Q150 199 209 194 L210 206 Q150 212 90 206 Z',0));
+    if(F)add(ln('M150 40 L150 70','zip'));
   }else if(top==='track'){
     add(P('tBody','M104 66 Q150 56 196 66 L202 106 L206 214 Q206 228 198 230 L102 230 Q94 228 94 214 L98 106 Z',0));
     add(P('tAccent','M99 104 Q116 150 110 230 L95 230 Q94 170 99 104 Z',1));
