@@ -335,8 +335,11 @@ function ovDef(f,id){
 function patDef(k,col,id,y0,y1){
   if(k==='stripe')return `<pattern id="${id}" width="12" height="12" patternUnits="userSpaceOnUse"><rect width="12" height="5" fill="${col}"/></pattern>`;
   if(k==='check')return `<pattern id="${id}" width="22" height="22" patternUnits="userSpaceOnUse"><rect width="22" height="9" fill="${col}" opacity=".5"/><rect width="9" height="22" fill="${col}" opacity=".5"/><rect y="15" width="22" height="1.2" fill="${col}" opacity=".85"/><rect x="15" width="1.2" height="22" fill="${col}" opacity=".85"/></pattern>`;
-  if(k==='camo'){const dk=mixHex(col,-.45),b=['M4 10 Q14 2 24 8 Q30 16 22 22 Q12 26 6 20 Z','M38 4 Q50 0 58 8 Q62 18 52 20 Q42 18 38 10 Z','M30 34 Q42 28 52 36 Q56 46 46 50 Q34 52 28 44 Z','M2 40 Q12 34 18 42 Q20 54 10 58 Q0 56 2 46 Z','M48 54 Q58 50 64 58 L64 64 L44 64 Q42 58 48 54 Z','M18 26 Q26 24 28 32 Q24 38 16 34 Z'];
-    return `<pattern id="${id}" width="64" height="64" patternUnits="userSpaceOnUse">${b.map((d,i)=>`<path d="${d}" fill="${i%2?dk:col}"/>`).join('')}</pattern>`}
+  if(k==='camo'){const t=[col,mixHex(col,-.45),mixHex(col,.35)],b=[
+    'M0 0 L14 0 Q20 6 16 12 Q22 18 14 22 Q6 20 4 26 L0 26 Z','M24 2 Q34 -2 40 6 Q48 4 50 12 Q44 20 34 16 Q26 18 22 10 Z',
+    'M8 30 Q18 26 24 32 Q32 30 34 38 Q28 46 18 42 Q10 46 6 38 Z','M38 26 Q48 22 56 28 L56 44 Q48 48 42 42 Q34 38 38 26 Z',
+    'M20 46 Q30 44 34 50 Q40 52 40 56 L16 56 Q14 50 20 46 Z','M44 50 Q50 48 56 52 L56 56 L42 56 Z','M26 20 Q32 18 34 24 Q30 28 24 26 Z'];
+    return `<pattern id="${id}" width="56" height="56" patternUnits="userSpaceOnUse">${b.map((d,i)=>`<path d="${d}" fill="${t[i%3]}"/>`).join('')}</pattern>`}
   if(k==='grad')return `<linearGradient id="${id}" gradientUnits="userSpaceOnUse" x1="0" y1="${y0}" x2="0" y2="${y1}"><stop offset="0" stop-color="${col}" stop-opacity="0"/><stop offset="1" stop-color="${col}"/></linearGradient>`;
   return '';
 }
@@ -721,6 +724,7 @@ function randomPiece(){
   else{const g=S.accGroup,o=Object.keys(ACC[g].opts).filter(k=>k!=='none');S.acc[g]=pick(o);S.c[ACC[g].z]=pick(PAL)}
 }
 function accRows(){return Object.keys(ACC).map(g=>`<p class="small mute" style="margin:12px 0 6px">${ACC[g].label}${ACC[g].hint?' ('+ACC[g].hint+')':''}</p><div class="chips hs">${Object.keys(ACC[g].opts).map(k=>`<button class="chip" data-act="acc" data-g="${g}" data-k="${k}" aria-pressed="${S.acc[g]===k}">${ACC[g].opts[k]}</button>`).join('')}</div>`).join('')}
+function patRow(g){return `<div class="chips hs">${Object.keys(PATS).map(k=>`<button class="chip" data-act="pat" data-g="${g}" data-k="${k}" aria-pressed="${S.pat[g]===k}">${PATS[k]}</button>`).join('')}</div>`}
 function chipRow(obj,cur,act){return `<div class="chips hs">`+Object.keys(obj).map(k=>`<button class="chip" data-act="${act}" data-k="${k}" aria-pressed="${cur===k}">${esc(typeof obj[k]==='string'?obj[k]:obj[k].label)}</button>`).join('')+`</div>`}
 function piecesOf(cat){return S.looks.filter(l=>l.kind==='piece'&&(!cat||l.cat===cat))}
 function pieceScroller(list,act,lab){return `<div class="scroller pcs">${list.map(p=>`<button class="preset" data-act="${act}" data-k="${p.id}"><div class="th">${pieceThumb(p,'pc'+p.id+act)}</div><span>${esc(p.name)}${lab?`<br><small class="mute">${CATS[p.cat]}</small>`:''}</span></button>`).join('')}</div>`}
@@ -748,6 +752,8 @@ function studio(){
     <h2>Bas</h2>${chipRow(BOTTOMS,S.bottom,'bottom')}
     <h2>Matière du haut</h2>${chipRow(FABRICS,S.fabric,'fabric')}
     <h2>Matière du bas</h2>${chipRow(FABRICS,S.fabricB,'fabricB')}
+    <h2>Motif du haut</h2>${patRow('top')}
+    <h2>Motif du bas</h2>${patRow('bottom')}
     <h2>Accessoires</h2>${accRows()}
     <h2>Assembler avec mes pièces</h2>
     ${piecesOf().length?`<p class="small mute" style="margin:0 0 8px">Touche une pièce enregistrée pour l’ajouter à la tenue.</p>${pieceScroller(piecesOf(),'usePiece',true)}`:`<p class="small mute" style="margin:0">Aucune pièce enregistrée. Passe en « Pièce par pièce » pour en créer, puis reviens les assembler ici.</p>`}
@@ -758,8 +764,8 @@ function studio(){
   /* mode pièce */
   const cat=S.cat,g=S.accGroup,editing=S.editId&&S.looks.find(l=>l.id===S.editId&&l.kind==='piece'&&l.cat===cat);
   let sel='';
-  if(cat==='top')sel=`<h2>Type de haut</h2>${chipRow(TOPS,S.top,'top')}<h2>Matière</h2>${chipRow(FABRICS,S.fabric,'fabric')}`;
-  else if(cat==='bottom')sel=`<h2>Type de bas</h2>${chipRow(BOTTOMS,S.bottom,'bottom')}<h2>Matière</h2>${chipRow(FABRICS,S.fabricB,'fabricB')}`;
+  if(cat==='top')sel=`<h2>Type de haut</h2>${chipRow(TOPS,S.top,'top')}<h2>Matière</h2>${chipRow(FABRICS,S.fabric,'fabric')}<h2>Motif</h2>${patRow('top')}`;
+  else if(cat==='bottom')sel=`<h2>Type de bas</h2>${chipRow(BOTTOMS,S.bottom,'bottom')}<h2>Matière</h2>${chipRow(FABRICS,S.fabricB,'fabricB')}<h2>Motif</h2>${patRow('bottom')}`;
   else sel=`<h2>Accessoire</h2><div class="chips hs">${Object.keys(ACC).map(x=>`<button class="chip" data-act="accGroup" data-k="${x}" aria-pressed="${g===x}">${ACC[x].label}</button>`).join('')}</div>
     <p class="small mute" style="margin:12px 0 6px">${ACC[g].label}${ACC[g].hint?' ('+ACC[g].hint+')':''}</p>
     <div class="chips hs">${Object.keys(ACC[g].opts).map(k=>`<button class="chip" data-act="acc" data-g="${g}" data-k="${k}" aria-pressed="${S.acc[g]===k}">${ACC[g].opts[k]}</button>`).join('')}</div>`;
@@ -858,11 +864,12 @@ function setHeader(){$('#hdrName').textContent=S.brand.name||'Ma marque'}
 
 /* ---------- onglet Collection ---------- */
 let openSheet=null,pendingDel=null;
+function patLine(k,col,lab){return k&&k!=='none'&&PATS[k]?`- ${lab} : ${PATS[k]}, ${colorName(col||'#f3f1ea')} (${col||'#f3f1ea'})\n`:''}
 function sheetText(L){
   if(L.kind==='piece'){
     let t=`Fiche technique (pièce) : ${L.name}\nMarque : ${S.brand.name}\n\n`;
-    if(L.cat==='top'){t+=`Haut : ${TOPS[L.top].label}\nMatière : ${FABRICS[L.fabric]}\n\nCouleurs\n`;const Z=TOPS[L.top].zones;Object.keys(Z).forEach(k=>{t+=`- ${Z[k]} : ${colorName(L.c[k])} (${L.c[k]})\n`});t+=`- Surpiqûres et liserés : ${colorName(L.c.stitch)} (${L.c.stitch})\n`}
-    else if(L.cat==='bottom'){t+=`Bas : ${BOTTOMS[L.bottom].label}\nMatière : ${FABRICS[L.fabricB||L.fabric]}\n\nCouleurs\n`;const Z=BOTTOMS[L.bottom].zones;Object.keys(Z).forEach(k=>{t+=`- ${Z[k]} : ${colorName(L.c[k])} (${L.c[k]})\n`});t+=`- Surpiqûres et liserés : ${colorName(L.c.stitchB)} (${L.c.stitchB})\n`}
+    if(L.cat==='top'){t+=`Haut : ${TOPS[L.top].label}\nMatière : ${FABRICS[L.fabric]}\n\nCouleurs\n`;const Z=TOPS[L.top].zones;Object.keys(Z).forEach(k=>{t+=`- ${Z[k]} : ${colorName(L.c[k])} (${L.c[k]})\n`});t+=`- Surpiqûres et liserés : ${colorName(L.c.stitch)} (${L.c.stitch})\n`+patLine(L.pat,L.c.tPat,'Motif (corps et manches)')}
+    else if(L.cat==='bottom'){t+=`Bas : ${BOTTOMS[L.bottom].label}\nMatière : ${FABRICS[L.fabricB||L.fabric]}\n\nCouleurs\n`;const Z=BOTTOMS[L.bottom].zones;Object.keys(Z).forEach(k=>{t+=`- ${Z[k]} : ${colorName(L.c[k])} (${L.c[k]})\n`});t+=`- Surpiqûres et liserés : ${colorName(L.c.stitchB)} (${L.c.stitchB})\n`+patLine(L.pat,L.c.bPat,'Motif (jambes)')}
     else{const z=ACC[L.group].z;t+=`Accessoire : ${ACC[L.group].label}, ${ACC[L.group].opts[L.opt]}\nCouleur : ${colorName(L.c[z])} (${L.c[z]})\n`}
     if(L.marks&&L.marks.length){t+='\nMarquage (logos)\n';L.marks.forEach((m,i)=>{t+='- '+markDesc(Object.assign({},DEFMARK,m),i)+'\n'})}
     return t;
@@ -871,6 +878,7 @@ function sheetText(L){
   let s=`Fiche technique : ${L.name}\nMarque : ${S.brand.name}\n\nHaut : ${T.label}\nBas : ${B.label}\nMatière : ${FABRICS[L.fabric]}\n\nCouleurs\n`;
   Object.keys(Z).forEach(k=>{s+=`- ${Z[k]} : ${colorName(L.c[k])} (${L.c[k]})\n`});
   s+=`- Surpiqûres et liserés : ${colorName(L.c.stitch)} (${L.c.stitch})\n`;
+  const lp=L.pat||{};s+=patLine(lp.top,L.c.tPat,'Motif du haut (corps et manches)')+patLine(lp.bottom,L.c.bPat,'Motif du bas (jambes)');
   const ac=Object.assign({},ACC0,L.acc||{});
   Object.keys(ACC).forEach(g=>{if(ac[g]!=='none'){const z=ACC[g].z,col=(L.c[z]||ACCC[z]);s+=`- ${ACC[g].label} : ${ACC[g].opts[ac[g]]}, ${colorName(col)} (${col})\n`}});
   if(L.marks&&L.marks.length){s+='\nMarquage (logos)\n';L.marks.forEach((m,i)=>{s+='- '+markDesc(Object.assign({},DEFMARK,m),i)+'\n'})}
@@ -1053,6 +1061,7 @@ document.addEventListener('click',e=>{
     case 'cat':S.cat=k;S.editId=null;S.sel=Object.keys(zonesOf(S))[0];break;
     case 'accGroup':S.accGroup=k;S.editId=null;S.sel=ACC[k].z;break;
     case 'fabricB':S.fabricB=k;break;
+    case 'pat':S.pat[el.dataset.g]=k;if(k!=='none')S.sel=el.dataset.g==='top'?'tPat':'bPat';break;
     case 'savePiece':case 'savePieceNew':{
       const np=makePiece(),ex=(a==='savePiece')&&S.editId&&S.looks.find(l=>l.id===S.editId&&l.kind==='piece'&&l.cat===S.cat);
       if(ex){Object.assign(ex,np,{id:ex.id,name:ex.name});toast('Pièce mise à jour')}

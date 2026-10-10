@@ -67,3 +67,15 @@ test('un look aléatoire garde des couleurs de motif valides', () => {
 });
 
 function t0() { return charger(); }
+
+test('la fiche technique mentionne le motif, et pas quand la pièce est unie', () => {
+  const t = charger();
+  const raye = piece(1, S => { S.cat = 'top'; S.pat.top = 'stripe'; S.c.tPat = '#c8283c'; });
+  const uni = piece(2, S => { S.cat = 'top'; });
+  assert.match(t.sheetText(raye), /Motif \(corps et manches\) : Rayures, Rouge \(#c8283c\)/);
+  assert.doesNotMatch(t.sheetText(uni), /Motif/);
+  const tenue = { kind: 'outfit', name: 'T', top: 'bomber', bottom: 'wide', fabric: 'fleece', pat: { top: 'none', bottom: 'camo' }, c: Object.assign({}, t.S.c), acc: {}, marks: [] };
+  assert.match(t.sheetText(tenue), /Motif du bas \(jambes\) : Camouflage/);
+  delete tenue.pat;
+  assert.doesNotMatch(t.sheetText(tenue), /Motif/);
+});
