@@ -8,7 +8,7 @@ Langue de l'interface : français. Le téléphone est la cible principale (mobil
 ## Structure du script (dans l'ordre du fichier)
 - Données : `TOPS`, `BOTTOMS`, `FABRICS`, `ACC` (accessoires), `PRESETS`, `LOGOS`, `PL` (emplacements de logos), `SHAPES`, `QUICK`, `DEF` (état par défaut).
 - État : objet global `S` (chargé par `load()`, sauvegardé par `persist()`).
-  Champs clés : `mode` (`piece` ou `outfit`), `cat` (`top`/`bottom`/`acc`), `top`, `bottom`, `fabric` (haut), `fabricB` (bas), `c` (couleurs par zone), `acc`, `marks` (logos), `looks` (collection : pièces `kind:'piece'` et tenues), `brand`, `biz`.
+  Champs clés : `mode` (`piece` ou `outfit`), `cat` (`top`/`bottom`/`acc`), `top`, `bottom`, `fabric` (haut), `fabricB` (bas), `pat` (motif `{top,bottom}` parmi `PATS`, couleur dans `c.tPat`/`c.bPat`, appliqué aux zones de `PATZ` par `patDef()`), `c` (couleurs par zone), `acc`, `marks` (logos), `looks` (collection : pièces `kind:'piece'` et tenues), `brand`, `biz`.
 - Rendu : `build(G, uid, sel)` génère le SVG du mannequin. Les zones colorables ont un `id` (`tBody`, `bLegs`, `aHead`…). `ZOOM` gère le cadrage en mode pièce.
 - Onglets : `studio()` (Atelier), `marquage()` (logos brodés/imprimés), `brand()` (Marque), `collection()`, `lookbook()`, `biz()` (Business).
 - Lookbook : `S.lookbook` contient des looks qui **référencent** des pièces par id (`top`, `bottom`, `acc:{groupe:id}`), sans copier leurs couleurs. `lookG()` les reconstruit via `mergePiece()` ; une pièce supprimée apparaît dans `miss`. `S.lb` = look en cours de composition. `renderTab()` choisit l'onglet.
