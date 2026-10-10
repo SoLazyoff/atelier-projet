@@ -15,6 +15,7 @@ Langue de l'interface : français. Le téléphone est la cible principale (mobil
 - Export de fiche : `sheetData(kind,id)` (`kind` = `look` pour la collection, `lb` pour le Lookbook) alimente `exportPdf()` (zone `#print` + `window.print()`) et `exportPng()` (canvas, partage natif sinon téléchargement).
 - Patronage : `SPEC` (mesures taille M par coupe), `POM` (libellés), `GRADE` (pas par taille), `TOL` (tolérances) ; `specRows(p)` donne la grille S→XXL avec les surcharges `p.spec`. `flatSVG(p,view)` dessine la pièce à plat (mode `flat` de `build()`) et place les cotes A, B… sur sa géométrie. Toute nouvelle coupe doit avoir son entrée dans `SPEC` (un test le vérifie). Ce sont des mesures de vêtement fini pour un tech pack, pas des pièces de patron 1:1.
 - Thème : `S.theme` (`auto`/`light`/`dark`), appliqué par `applyTheme()` via `data-theme` sur `<html>` ; les couleurs sont des variables CSS redéfinies pour le sombre.
+- Mockups : `mockupSVG(p,style)` dessine face + dos côte à côte (`style` = `gray` pour la bibliothèque, `color` pour une pièce) via le mode `flat` de `build()`. Collection s'ouvre sur `mockups()` (`S.collView` = `mock` ou `fiches`) ; la recherche de la bibliothèque couvre libellé, clé et `LIBALIAS` (noms anglais). Style inspiré de Mockup Designer : fond noir quel que soit le thème.
 - Événements : un seul écouteur `click` (attributs `data-act`, `data-k`) et un seul `input` (attribut `data-in`).
 
 ## Règles pour modifier
