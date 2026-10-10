@@ -680,13 +680,16 @@ function makePiece(){
   if(cat==='bottom'){const c={};Object.keys(BOTTOMS[S.bottom].zones).concat('stitchB').forEach(k=>c[k]=S.c[k]);return {id,kind:'piece',cat,name:BOTTOMS[S.bottom].label+' '+cnt,bottom:S.bottom,fabric:S.fabricB,fabricB:S.fabricB,c,marks:mk('bottom')}}
   const g=S.accGroup,z=ACC[g].z;return {id,kind:'piece',cat:'acc',name:ACC[g].opts[S.acc[g]]+' '+cnt,group:g,opt:S.acc[g],c:{[z]:S.c[z]},marks:g==='head'?mk('acc'):[]};
 }
-function applyPiece(p){
-  const keep=c=>S.marks.filter(m=>MARKCAT[m.place]!==c);
-  if(p.cat==='top'){S.top=p.top;S.fabric=p.fabric;Object.assign(S.c,p.c);S.marks=keep('top').concat((p.marks||[]).map(m=>Object.assign({},DEFMARK,m)))}
-  else if(p.cat==='bottom'){S.bottom=p.bottom;S.fabricB=p.fabricB||p.fabric;Object.assign(S.c,p.c);S.marks=keep('bottom').concat((p.marks||[]).map(m=>Object.assign({},DEFMARK,m)))}
-  else{S.acc[p.group]=p.opt;Object.assign(S.c,p.c);if(p.group==='head')S.marks=keep('acc').concat((p.marks||[]).map(m=>Object.assign({},DEFMARK,m)))}
-  S.mi=0;
+/* fusionne une pièce dans une tenue sans toucher à S : sert à l'Atelier et au Lookbook */
+function mergePiece(G,p){
+  const o={top:G.top,bottom:G.bottom,fabric:G.fabric,fabricB:G.fabricB,c:Object.assign({},G.c),acc:Object.assign({},G.acc),marks:(G.marks||[]).slice()};
+  const keep=c=>o.marks.filter(m=>MARKCAT[m.place]!==c),norm=ms=>(ms||[]).map(m=>Object.assign({},DEFMARK,m));
+  if(p.cat==='top'){o.top=p.top;o.fabric=p.fabric;Object.assign(o.c,p.c);o.marks=keep('top').concat(norm(p.marks))}
+  else if(p.cat==='bottom'){o.bottom=p.bottom;o.fabricB=p.fabricB||p.fabric;Object.assign(o.c,p.c);o.marks=keep('bottom').concat(norm(p.marks))}
+  else{o.acc[p.group]=p.opt;Object.assign(o.c,p.c);if(p.group==='head')o.marks=keep('acc').concat(norm(p.marks))}
+  return o;
 }
+function applyPiece(p){Object.assign(S,mergePiece(S,p));S.mi=0}
 function randomPiece(){
   const pick=a=>a[Math.floor(Math.random()*a.length)];
   const A=pick(PAL);let B=pick(PAL);while(B===A)B=pick(PAL);let Cc=pick(PAL);while(Cc===A||Cc===B)Cc=pick(PAL);const h=()=>Math.random()<.5;
