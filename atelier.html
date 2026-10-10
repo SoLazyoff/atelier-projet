@@ -174,6 +174,7 @@ const BOTTOMS={
   sweat:{label:'Jogger large',zones:{bLegs:'Jambes',bStripe:'Bande latérale',bAccent:'Empiècement',bTrim:'Taille et bas'}},
   wide:{label:'Pantalon large',zones:{bLegs:'Jambes',bStripe:'Bande latérale',bAccent:'Empiècement',bTrim:'Ceinture'}},
   cargo:{label:'Cargo',zones:{bLegs:'Jambes',bStripe:'Côtés',bAccent:'Poches cargo',bTrim:'Ceinture'}},
+  para:{label:'Pantalon parachute',zones:{bLegs:'Jambes',bStripe:'Panneaux côtés',bAccent:'Poches zippées',bTrim:'Taille et chevilles'}},
   jean:{label:'Jean baggy',zones:{bLegs:'Jambes',bStripe:'Coutures côtés',bAccent:'Empiècement genoux',bTrim:'Ceinture'}},
   taper:{label:'Pantalon fuselé',zones:{bLegs:'Jambes',bStripe:'Bande latérale',bAccent:'Empiècement',bTrim:'Taille et chevilles'}},
   short:{label:'Short',zones:{bLegs:'Short',bStripe:'Bande latérale',bAccent:'Poche',bTrim:'Taille et ourlets'}},
@@ -454,6 +455,14 @@ function build(G,uid,sel){
       if(F)add(ln('M150 217 L150 262','seam'),lm('M101 219 Q112 246 113 268','seam'));
       else add(lm('M112 232 L146 232 L146 264 L112 264 Z','seam'));
     }
+  }else if(bot==='para'){
+    /* jambe ballon, resserrée à la cheville par un cordon */
+    add(P('bLegs','M97 214 L150 214 L152 330 Q152 404 142 438 L142 452 L84 452 L84 438 Q60 380 70 300 Q80 248 97 214 Z',1));
+    add(P('bStripe','M97 214 L110 214 Q94 300 92 380 Q92 418 96 438 L84 438 Q60 380 70 300 Q80 248 97 214 Z',1));
+    add(P('bAccent','M104 300 L132 296 L135 338 L106 342 Z',1),lm('M106 306 L132 302','zip'));
+    add(P('bTrim','M84 438 L142 438 L142 452 L84 452 Z',1),P('bTrim',WB1,0));cord();
+    add(lm('M74 360 Q112 374 150 360','seam'),lm('M84 426 Q113 434 142 426','seam'));
+    if(F)add(lm('M86 445 L80 462','str'));
   }else if(bot==='taper'){
     add(P('bLegs','M98 214 L150 214 L150 320 L138 452 L104 452 Q104 330 98 214 Z',1));
     add(P('bStripe','M98 214 L110 214 Q110 330 112 452 L104 452 Q104 330 98 214 Z',1));
