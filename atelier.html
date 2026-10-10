@@ -85,6 +85,12 @@ h2:first-child{margin-top:4px}
 .ghost{background:none;border:1px solid var(--line);color:var(--ink);border-radius:10px;padding:10px 14px;font-weight:600;font-size:14px}
 .row2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 .row3{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.planche{background:#c8961e;color:#1b1408;margin:24px -16px 0;padding:6px 16px 22px}
+.planche h2{color:#1b1408}
+.planche h3{font-size:13px;font-weight:750;margin:16px 0 8px;letter-spacing:.02em}
+.dgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.dtile{background:rgba(255,255,255,.16);border:0;border-radius:10px;padding:8px 4px 6px;color:#1b1408;font-size:11px;font-weight:600;line-height:1.2}
+.dtile svg{display:block;width:100%;height:46px;margin-bottom:4px}
 .mockroom{background:#0e0e10;color:#f2f2f0;padding:6px 16px 28px;min-height:60vh}
 .mockroom h2{color:#fff}
 .mgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px 10px}
@@ -628,7 +634,7 @@ function build(G,uid,sel){
 
   /* détails posés à plat (poches, zips…) et capuches ajoutées */
   const DETS=(G.dets||[]).filter(dt=>DET[dt.kind]&&!(only&&MARKCAT[dt.place]!==only));
-  const detItem=dt=>{if(DET[dt.kind].abs)return {t:'det',dt,F};const ps=placeXY(dt.place,G,A,F);return ps&&{t:'det',dt,F,x:ps.x+(Number(dt.dx)||0),y:ps.y+(Number(dt.dy)||0),sc:ps.bw*(Number(dt.size)||1)/20}};
+  const detItem=dt=>{if(DET[dt.kind].abs)return {t:'det',dt,F};const ps=placeXY(dt.place,G,A,F);return ps&&{t:'det',dt,F,x:ps.x+(Number(dt.dx)||0),y:ps.y+(Number(dt.dy)||0),sc:Math.min(ps.bw,22)*(Number(dt.size)||1)/20}};
   if(F)DETS.filter(dt=>DET[dt.kind].abs).forEach(dt=>add(detItem(dt)));
   /* tête, couvre-chef, lunettes */
   add(`<path d="M142 46 L158 46 L160 66 L140 66 Z" fill="${SKIN2}"/><ellipse cx="150" cy="30" rx="17" ry="21" fill="${SKIN}"/>`);
@@ -1406,6 +1412,39 @@ function newMark(extra){
   const m=Object.assign({},DEFMARK,{color:dark?'#111214':'#f3f1ea',bg:dark?'#f3f1ea':'#111214'},extra||{});
   return m;
 }
+/* ---------- détails : éditeur et planche ---------- */
+function detTile(k){
+  const D=DET[k],dt=Object.assign({},DEFDET,{kind:k}),vb=D.abs?'100 16 100 72':'-15 -16 30 32';
+  return `<button class="dtile" data-act="detAdd" data-k="${k}"><svg viewBox="${vb}" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">${detSVG(dt,true,0,0,1,'gray')}</svg><span>${esc(D.l)}</span></button>`;
+}
+/* emplacements possibles pour un détail : ceux des logos (sauf casquette) et ceux propres aux détails, filtrés par vue et par pièce */
+function detPlaces(v){return Object.keys(PL).filter(k=>k!=='cap').concat(Object.keys(DPL).filter(k=>k!=='hood')).filter(k=>(PL[k]||DPL[k]).v===v&&(S.mode!=='piece'||MARKCAT[k]===S.cat))}
+function detailsPane(sw){
+  const d=S.dets[S.di],D=d&&DET[d.kind];
+  const list=`<div class="chips hs">${S.dets.map((x,i)=>`<button class="chip" data-act="detsel" data-k="${i}" aria-pressed="${i===S.di}">${esc(DET[x.kind].l)}</button>`).join('')||'<span class="small mute">Aucun détail : touche-en un dans la bibliothèque.</span>'}</div>`;
+  let ed='';
+  if(d){
+    const chips=v=>detPlaces(v).map(k=>`<button class="chip" data-act="detplace" data-k="${k}" aria-pressed="${d.place===k}">${(PL[k]||DPL[k]).l}</button>`).join('');
+    const hidden=S.mode==='piece'&&MARKCAT[d.place]!==S.cat;
+    const noSleeve=(d.place==='sleeve-l'||d.place==='sleeve-r')&&['vest','jersey','pufvest'].includes(S.top);
+    ed=`<h2>${esc(D.l)}</h2>
+    ${hidden?`<p class="note">Ce détail est sur l’autre pièce de la tenue : il n’apparaît pas en mode pièce.</p>`:''}
+    ${noSleeve?`<p class="note">Cette pièce n’a pas de manches : choisis un autre emplacement.</p>`:''}
+    ${D.abs?'':`<p class="small mute" style="margin:0 0 6px">Emplacement · face</p><div class="chips hs">${chips('f')}</div>
+    <p class="small mute" style="margin:12px 0 6px">Emplacement · dos</p><div class="chips hs">${chips('b')}</div>`}
+    <h2>Couleur</h2>
+    <div class="pal" style="margin-top:0">${sw('detcol',d.color)}<input type="color" class="colorin" data-in="dt.color" value="${d.color}" aria-label="Couleur personnalisée du détail"></div>
+    ${D.abs?'':`<h2>Taille et position</h2>
+    <div class="field"><label for="dt-size">Taille</label><input id="dt-size" type="range" data-in="dt.size" min="0.5" max="2.5" step="0.05" value="${d.size}"></div>
+    <div class="field"><label for="dt-rot">Rotation</label><input id="dt-rot" type="range" data-in="dt.rot" min="-90" max="90" step="1" value="${d.rot}"></div>
+    <div class="row2"><div class="field"><label for="dt-dx">Gauche / droite</label><input id="dt-dx" type="range" data-in="dt.dx" min="-40" max="40" step="1" value="${d.dx}"></div><div class="field"><label for="dt-dy">Haut / bas</label><input id="dt-dy" type="range" data-in="dt.dy" min="-40" max="40" step="1" value="${d.dy}"></div></div>`}
+    <button class="ghost" data-act="detdel" style="width:100%;margin-top:6px">Retirer ce détail</button>`;
+  }
+  return `${list}${ed}
+  <section class="planche"><h2>Bibliothèque de détails</h2>
+  ${Object.keys(DETCATS).map(c=>`<h3>${DETCATS[c]}</h3><div class="dgrid">${Object.keys(DET).filter(k=>DET[k].c===c).map(detTile).join('')}</div>`).join('')}
+  <p class="small" style="margin:16px 0 0">Les détails s’enregistrent avec la pièce et apparaissent dans les mockups, le dessin à plat et la fiche (liste des fournitures).</p></section>`;
+}
 function marquage(){
   const m=S.marks[S.mi];
   const pal=[...new Set([...designColors(),...PAL])];
@@ -1441,7 +1480,9 @@ function marquage(){
     <div class="row2"><div class="field"><label for="mk-dx">Gauche / droite</label><input id="mk-dx" type="range" data-in="mk.dx" min="-30" max="30" step="1" value="${m.dx}"></div><div class="field"><label for="mk-dy">Haut / bas</label><input id="mk-dy" type="range" data-in="mk.dy" min="-30" max="30" step="1" value="${m.dy}"></div></div>
     <button class="ghost" data-act="mkdel" style="width:100%">Supprimer ce logo</button>`;
   }else ed=`<p class="mute">Aucun logo sur la pièce. Ajoute-en un ou pars d’une idée ci-dessous.</p>`;
-  return stage+`<div class="pad">${list}${S.mode==='piece'?`<p class="small mute" style="margin:10px 0 0">Mode pièce : seuls les logos de la pièce en cours (${CATS[S.cat].toLowerCase()}) s’affichent sur le mannequin.</p>`:''}${ed}
+  const seg=`<div class="seg2" role="group" aria-label="Logos ou détails" style="margin-bottom:14px"><button data-act="markView" data-k="logos" aria-pressed="${S.markView!=='dets'}">Logos</button><button data-act="markView" data-k="dets" aria-pressed="${S.markView==='dets'}">Détails</button></div>`;
+  if(S.markView==='dets')return stage+`<div class="pad">${seg}${detailsPane(sw)}</div>`;
+  return stage+`<div class="pad">${seg}${list}${S.mode==='piece'?`<p class="small mute" style="margin:10px 0 0">Mode pièce : seuls les logos de la pièce en cours (${CATS[S.cat].toLowerCase()}) s’affichent sur le mannequin.</p>`:''}${ed}
     <h2>Idées rapides</h2>
     <div class="chips">${QUICK.map((q,i)=>(S.mode==='piece'&&!q.marks.some(m=>MARKCAT[m.place]===S.cat))?'':`<button class="chip" data-act="mkquick" data-k="${i}">${esc(q.n)}</button>`).join('')}</div>
     <p class="small mute" style="margin-top:14px">Les logos suivent le look de l’Atelier et sont enregistrés avec lui dans la collection. Le texte reprend le nom de ta marque tant que tu ne le changes pas.</p>
@@ -1500,6 +1541,23 @@ document.addEventListener('click',e=>{
       const used=S.marks.map(x=>x.place),free=Object.keys(PL).filter(x=>!used.includes(x)&&x!=='cap'&&(S.mode!=='piece'||MARKCAT[x]===S.cat));
       const m=newMark({place:free[0]||'chest-l'});S.marks.push(m);S.mi=S.marks.length-1;S.view=PL[m.place].v==='b'?'back':'front';break;
     }
+    case 'markView':S.markView=k;break;
+    case 'detsel':S.di=+k;{const d=S.dets[S.di],pl=d&&(PL[d.place]||DPL[d.place]);if(pl&&pl.v!=='*')S.view=pl.v==='b'?'back':'front'}break;
+    case 'detAdd':{
+      if(S.dets.length>=12){toast('12 détails au maximum');return}
+      const D=DET[k];let place=D.place;
+      if(S.mode==='piece'){
+        if(S.cat==='acc'){toast('Choisis un haut ou un bas pour poser un détail');return}
+        if(D.abs&&S.cat!=='top'){toast('Une capuche se pose sur un haut');return}
+        if(MARKCAT[place]!==S.cat)place=S.cat==='top'?'chest-l':(D.c==='label'?'waist-b':'thigh-l');
+      }
+      S.dets.push(Object.assign({},DEFDET,{kind:k,place,color:D.c==='zip'||D.c==='cord'?'#b9bcc2':DEFDET.color}));S.di=S.dets.length-1;
+      const pl=PL[place]||DPL[place];if(pl.v!=='*')S.view=pl.v==='b'?'back':'front';
+      toast(D.l+' ajouté');persist();renderTab();window.scrollTo({top:0,behavior:'smooth'});return;
+    }
+    case 'detplace':if(S.dets[S.di]){S.dets[S.di].place=k;S.view=(PL[k]||DPL[k]).v==='b'?'back':'front'}break;
+    case 'detcol':if(S.dets[S.di])S.dets[S.di].color=k;break;
+    case 'detdel':S.dets.splice(S.di,1);S.di=Math.max(0,S.di-1);break;
     case 'mkdel':S.marks.splice(S.mi,1);S.mi=Math.max(0,S.mi-1);break;
     case 'mkkind':if(S.marks[S.mi])S.marks[S.mi].kind=k;break;
     case 'mkshape':if(S.marks[S.mi])S.marks[S.mi].shape=k;break;
@@ -1575,6 +1633,10 @@ document.addEventListener('click',e=>{
 });
 document.addEventListener('input',e=>{
   const t=e.target,k=t.dataset.in;if(!k)return;
+  if(k.startsWith('dt.')){
+    const d=S.dets[S.di];if(!d)return;const pr=k.slice(3);
+    d[pr]=pr==='color'?t.value:parseFloat(t.value);refreshStage();persist();return;
+  }
   if(k.startsWith('mk.')){
     const m=S.marks[S.mi];if(!m)return;const pr=k.slice(3);
     m[pr]=(pr==='size'||pr==='rot'||pr==='dx'||pr==='dy')?parseFloat(t.value):t.value;

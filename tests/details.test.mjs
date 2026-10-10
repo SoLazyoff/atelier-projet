@@ -68,3 +68,30 @@ test('initiales de la marque', () => {
   assert.equal(t.initials('chrome'), 'CH');
   assert.equal(t.initials(''), 'M');
 });
+
+test('la vue Détails montre la planche avec les 15 détails par famille', () => {
+  const t2 = charger();
+  t2.S.markView = 'dets';
+  const html = t2.marquage();
+  assert.match(html, /class="planche"/);
+  assert.equal((html.match(/data-act="detAdd"/g) || []).length, Object.keys(t2.DET).length);
+  for (const f of ['Poches', 'Étiquettes', 'Zips', 'Cordons', 'Capuches']) assert.match(html, new RegExp(`<h3>${f}</h3>`));
+  assert.doesNotMatch(html, /NaN|undefined/);
+});
+
+test("l'éditeur d'un bas ne propose que des emplacements de bas", () => {
+  const t2 = charger();
+  t2.S.markView = 'dets'; t2.S.mode = 'piece'; t2.S.cat = 'bottom';
+  t2.S.dets = [Object.assign({}, t2.DEFDET, { kind: 'cargo', place: 'thigh-l' })];
+  const html = t2.marquage();
+  const places = [...html.matchAll(/data-act="detplace" data-k="([^"]+)"/g)].map(m => m[1]);
+  assert.ok(places.length > 0);
+  assert.ok(places.every(p => ['thigh-l', 'thigh-r', 'pocket-l', 'pocket-r', 'waist-f', 'waist-b'].includes(p)), places.join());
+});
+
+test("la taille d'un détail ne dépend pas de la largeur prévue pour les grands logos", () => {
+  const sc = place => Number(t.build(Object.assign(avec([{ kind: 'cargo', place }]), { mode: 'outfit', view: place === 'back-c' ? 'back' : 'front' }), 's', null).match(/scale\(([\d.]+)\)/)[1]);
+  assert.equal(sc('belly'), 1.1);
+  assert.equal(sc('back-c'), 1.1);
+  assert.equal(sc('chest-l'), 1.1);
+});
