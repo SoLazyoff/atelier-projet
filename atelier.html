@@ -80,6 +80,16 @@ h2:first-child{margin-top:4px}
 .ghost{background:none;border:1px solid var(--line);color:var(--ink);border-radius:10px;padding:10px 14px;font-weight:600;font-size:14px}
 .row2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 .row3{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.flat{margin:0;background:#fff;border:1px solid var(--line);border-radius:8px;overflow:hidden}
+.flat svg{display:block;width:100%;height:210px}
+.flat figcaption{text-align:center;font-size:12.5px;font-weight:600;padding:4px;color:#111}
+.tblw{overflow-x:auto;margin:0 -14px;padding:0 14px}
+table.spec{border-collapse:collapse;font-size:13px;min-width:100%}
+.spec th,.spec td{padding:6px 5px;border-bottom:1px solid var(--line);text-align:center;white-space:nowrap}
+.spec td:nth-child(2){text-align:left;white-space:normal;min-width:130px}
+.spec input{width:58px;padding:5px 4px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink);font:inherit;text-align:center}
+.spec input.custom{border-color:var(--acc);border-width:2px}
+.lt{display:inline-grid;place-items:center;width:20px;height:20px;border-radius:50%;background:#c8283c;color:#fff;font-size:11px}
 #print{display:none}
 @media print{
   @page{size:A4;margin:14mm}
@@ -1026,7 +1036,7 @@ function refreshLogo(){
 function setHeader(){$('#hdrName').textContent=S.brand.name||'Ma marque'}
 
 /* ---------- onglet Collection ---------- */
-let openSheet=null,pendingDel=null;
+let openSheet=null,pendingDel=null,openPatron=null;
 function patLine(k,col,lab){return k&&k!=='none'&&PATS[k]?`- ${lab} : ${PATS[k]}, ${colorName(col||'#f3f1ea')} (${col||'#f3f1ea'})\n`:''}
 function sheetText(L){
   if(L.kind==='piece'){
@@ -1052,7 +1062,17 @@ function sheetText(L){
 function lookCard(l){
   const isP=l.kind==='piece';
   const th=isP?pieceThumb(l,'c'+l.id):build({top:l.top,bottom:l.bottom,fabric:l.fabric,fabricB:l.fabricB,pat:l.pat,view:'front',c:l.c,acc:l.acc,marks:l.marks},'c'+l.id,null);
-  return `<div class="look"><div class="th">${th}</div><div class="in"><input data-in="lname" data-id="${l.id}" value="${esc(l.name)}" aria-label="Nom" maxlength="40"><div class="acts"><button data-act="${isP?'openPiece':'openLook'}" data-k="${l.id}">Ouvrir</button>${isP?`<button data-act="usePiece" data-k="${l.id}">Dans la tenue</button>`:''}<button data-act="sheet" data-k="${l.id}">Fiche</button><button data-act="del" data-k="${l.id}">${pendingDel===l.id?'Confirmer':'Retirer'}</button></div></div></div>`;
+  return `<div class="look"><div class="th">${th}</div><div class="in"><input data-in="lname" data-id="${l.id}" value="${esc(l.name)}" aria-label="Nom" maxlength="40"><div class="acts"><button data-act="${isP?'openPiece':'openLook'}" data-k="${l.id}">Ouvrir</button>${isP?`<button data-act="usePiece" data-k="${l.id}">Dans la tenue</button>`:''}${isP&&l.cat!=='acc'?`<button data-act="patron" data-k="${l.id}">Patron</button>`:''}<button data-act="sheet" data-k="${l.id}">Fiche</button><button data-act="del" data-k="${l.id}">${pendingDel===l.id?'Confirmer':'Retirer'}</button></div></div></div>`;
+}
+function patronPanel(p){
+  const rows=specRows(p);
+  return `<div class="sheet patron"><h2 style="margin-top:0">Patronage : ${esc(p.name)}</h2>
+  <div class="row2">${['front','back'].map(v=>`<figure class="flat">${flatSVG(p,v)}<figcaption>${v==='front'?'Face':'Dos'}</figcaption></figure>`).join('')}</div>
+  <p class="small mute">Mesures du vêtement à plat, en cm. Modifie la taille M : les autres tailles suivent la gradation.</p>
+  <div class="tblw"><table class="spec"><thead><tr><th></th><th>Mesure</th>${SIZES.map(z=>`<th>${z}</th>`).join('')}<th>Tol.</th></tr></thead><tbody>
+  ${rows.map(r=>`<tr><td><b class="lt">${r.letter}</b></td><td>${esc(r.label)}</td>${r.vals.map((v,i)=>i===1?`<td><input data-in="spec" data-id="${p.id}" data-k="${r.k}" type="number" inputmode="decimal" step="0.5" min="1" value="${v}" aria-label="${esc(r.label)}, taille M"${r.custom?' class="custom"':''}></td>`:`<td id="sp-${r.k}-${i}">${cm(v)}</td>`).join('')}<td>±${cm(r.tol)}</td></tr>`).join('')}
+  </tbody></table></div>
+  <button class="ghost" data-act="specReset" data-k="${p.id}" style="width:100%;margin-top:10px">Revenir aux mesures standard</button></div>`;
 }
 function collection(){
   if(!S.looks.length)return `<div class="pad"><h2>Ma collection</h2><p class="mute">Rien pour l’instant. Crée une pièce dans l’Atelier (mode « Pièce par pièce »), enregistre-la ici, puis assemble tes pièces en tenue.</p><button class="primary" data-act="tab" data-t="studio">Aller à l’Atelier</button></div>`;
@@ -1061,6 +1081,7 @@ function collection(){
   const sec=(t,list)=>list.length?`<h2>${t} (${list.length})</h2><div class="grid">${list.map(lookCard).join('')}</div>`:'';
   return `<div class="pad">
   ${sec('Hauts',pcs.filter(p=>p.cat==='top'))}${sec('Bas',pcs.filter(p=>p.cat==='bottom'))}${sec('Accessoires',pcs.filter(p=>p.cat==='acc'))}${sec('Tenues',outs)}
+  ${(()=>{const pp=S.looks.find(l=>l.id===openPatron&&l.kind==='piece'&&l.cat!=='acc');return pp?patronPanel(pp):''})()}
   ${sh?`<div class="sheet"><pre>${esc(sheetText(sh))}</pre>${sheetButtons('look',sh.id,'copy')}<p class="small mute" style="margin:10px 0 0">À envoyer à un atelier ou un patronnier, ou à garder pour refaire la pièce en 3D.</p></div>`:''}
   </div>`;
 }
@@ -1353,8 +1374,10 @@ document.addEventListener('click',e=>{
     case 'logoFg':S.brand.fg=k;break;
     case 'openLook':{const l=S.looks.find(x=>x.id==k);if(l){S.top=l.top;S.bottom=l.bottom;S.fabric=l.fabric;S.fabricB=l.fabricB||l.fabric;S.pat=Object.assign({},DEF.pat,l.pat||{});S.mode='outfit';S.editId=null;S.c=fixC(Object.assign({},ACCC,l.c));S.acc=Object.assign({},ACC0,l.acc||{});S.marks=(l.marks||[]).map(m=>Object.assign({},DEFMARK,m));S.mi=0;S.view='front';go('studio')}return}
     case 'sheet':openSheet=(openSheet==+k)?null:+k;break;
+    case 'patron':openPatron=(openPatron==+k)?null:+k;persist();renderTab();{const e=$('.patron');if(e&&e.scrollIntoView)e.scrollIntoView({behavior:'smooth',block:'start'})}return;
+    case 'specReset':{const p=S.looks.find(x=>x.id==k);if(p)delete p.spec;toast('Mesures standard rétablies');break}
     case 'del':
-      if(pendingDel==+k){S.looks=S.looks.filter(x=>x.id!=k);pendingDel=null;if(openSheet==+k)openSheet=null;lbForget(+k)}
+      if(pendingDel==+k){S.looks=S.looks.filter(x=>x.id!=k);pendingDel=null;if(openSheet==+k)openSheet=null;if(openPatron==+k)openPatron=null;lbForget(+k)}
       else{pendingDel=+k;const n=lbUses(+k);if(n)toast(`Utilisée dans ${n} look${n>1?'s':''} du Lookbook`);setTimeout(()=>{if(pendingDel==+k){pendingDel=null;if(S.tab==='coll')renderTab()}},3000)}
       break;
     case 'copy':{
@@ -1404,6 +1427,12 @@ document.addEventListener('input',e=>{
   if(k==='name'){S.brand.name=t.value;setHeader();refreshLogo();persist();return}
   if(k==='tag'){S.brand.tag=t.value;refreshLogo();persist();return}
   if(k==='manifesto'){S.brand.manifesto=t.value;persist();return}
+  if(k==='spec'){
+    const p=S.looks.find(x=>x.id==t.dataset.id);if(!p)return;const v=parseFloat(t.value),key=t.dataset.k;
+    p.spec=Object.assign({},p.spec);if(Number.isFinite(v)&&v>0)p.spec[key]=v;else delete p.spec[key];
+    const r=specRows(p).find(x=>x.k===key);if(r)r.vals.forEach((x,i)=>{const c=document.getElementById(`sp-${key}-${i}`);if(c)c.textContent=cm(x)});
+    t.classList.toggle('custom',key in p.spec);persist();return;
+  }
   if(k==='lbname'){const l=S.lookbook.find(x=>x.id==t.dataset.id);if(l)l.name=t.value;persist();return}
   if(k==='lname'){const l=S.looks.find(x=>x.id==t.dataset.id);if(l)l.name=t.value;persist();return}
   if(k.startsWith('biz.')){S.biz[k.slice(4)]=t.value===''?0:parseFloat(t.value);bizCalc();persist();return}

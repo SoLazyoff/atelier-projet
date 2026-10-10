@@ -71,3 +71,13 @@ test("l'entrejambe du pantalon parachute part de l'entrejambe dessiné (y = 330)
   const b = t.flatSVG({ cat: 'bottom', bottom: 'para', c: {}, marks: [] }, 'back');
   assert.match(b, /M150 330 L150 452/);
 });
+
+test('le panneau de patronage montre les deux vues et une ligne par repère', () => {
+  const p = { id: 7, kind: 'piece', name: 'Jean <test>', cat: 'bottom', bottom: 'jean', c: {}, marks: [], spec: { C: 100 } };
+  const html = t.patronPanel(p);
+  assert.equal((html.match(/<svg /g) || []).length, 2);
+  assert.equal((html.match(/data-in="spec"/g) || []).length, t.specRows(p).length);
+  assert.match(html, /data-k="C"[^>]*value="100"[^>]*class="custom"/);
+  assert.match(html, /Jean &lt;test&gt;/);
+  assert.match(html, /id="sp-C-4">103</);
+});
