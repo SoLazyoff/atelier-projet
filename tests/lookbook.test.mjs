@@ -88,3 +88,20 @@ test('lbUses compte les looks qui utilisent une pièce', () => {
   assert.equal(t.lbUses(3), 1);
   assert.equal(t.lbUses(42), 0);
 });
+
+test('lbForget retire la pièce du look en cours de composition', () => {
+  const t = avecLookbook([]);
+  t.S.lb.top = 1; t.S.lb.bottom = 2; t.S.lb.acc.head = 3;
+  t.lbForget(1); t.lbForget(3);
+  assert.equal(t.S.lb.top, null);
+  assert.equal(t.S.lb.bottom, 2);
+  assert.equal(JSON.stringify(t.S.lb.acc), '{}');
+});
+
+test('les looks restent visibles quand il ne reste plus de haut', () => {
+  const t = charger({ 'atelier-marque-v1': JSON.stringify({ looks: [bas], lookbook: [{ id: 10, name: 'Drop 01', top: 1, bottom: 2, acc: {} }] }) });
+  const html = t.lookbook();
+  assert.match(html, /Il faut au moins un haut/);
+  assert.match(html, /Drop 01/);
+  assert.match(html, /Une pièce retirée/);
+});

@@ -886,6 +886,8 @@ function lookG(l,view){
   G.c=fixC(G.c);
   return Object.assign(G,{view:view||'front',miss});
 }
+/* retire une pièce supprimée du look en cours de composition ; les looks enregistrés la signalent comme retirée */
+function lbForget(id){const d=S.lb;if(d.top===id)d.top=null;if(d.bottom===id)d.bottom=null;Object.keys(d.acc).forEach(g=>{if(d.acc[g]===id)delete d.acc[g]})}
 function lbUses(id){return S.lookbook.filter(l=>l.top===id||l.bottom===id||Object.values(l.acc||{}).includes(id)).length}
 function lbText(l){
   const ids=[l.top,l.bottom].concat(Object.values(l.acc||{})).filter(x=>x!=null);
@@ -908,9 +910,11 @@ function lbCard(l){
   return `<div class="look"><div class="th">${build(G,'lbc'+l.id,null)}</div><div class="in"><input data-in="lbname" data-id="${l.id}" value="${esc(l.name)}" aria-label="Nom du look" maxlength="40">${n?`<p class="small" style="margin:0 0 8px;color:var(--bad)">${n>1?n+' pièces retirées':'Une pièce retirée'} de la collection</p>`:''}<div class="acts"><button data-act="lbOpen" data-k="${l.id}">Atelier</button><button data-act="lbSheet" data-k="${l.id}">Fiche</button><button data-act="lbDel" data-k="${l.id}">${lbPending===l.id?'Confirmer':'Retirer'}</button></div></div></div>`;
 }
 function lookbook(){
-  const tops=piecesOf('top'),bots=piecesOf('bottom');
-  if(!tops.length||!bots.length)return `<div class="pad"><h2>Lookbook</h2><p class="mute">Il faut au moins un haut et un bas enregistrés pour composer un look. Crée-les dans l’Atelier, en mode « Pièce par pièce ».</p><button class="primary" data-act="tab" data-t="studio">Aller à l’Atelier</button></div>`;
   const d=S.lb,ready=pieceById(d.top)&&pieceById(d.bottom),sh=S.lookbook.find(l=>l.id===lbSheetId);
+  const board=S.lookbook.length?`<h2>Mes looks (${S.lookbook.length})</h2><div class="grid">${S.lookbook.map(lbCard).join('')}</div>
+    ${sh?`<div class="sheet"><pre>${esc(lbText(sh))}</pre><button class="ghost" data-act="lbCopy" data-k="${sh.id}">Copier la fiche</button></div>`:''}`:'';
+  /* sans haut ou sans bas, on ne peut pas composer, mais les looks déjà faits restent visibles */
+  if(!piecesOf('top').length||!piecesOf('bottom').length)return `<div class="pad"><h2>Lookbook</h2><p class="mute">Il faut au moins un haut et un bas enregistrés pour composer un look. Crée-les dans l’Atelier, en mode « Pièce par pièce ».</p><button class="primary" data-act="tab" data-t="studio">Aller à l’Atelier</button>${board}</div>`;
   const stage=`<section class="stage">
     <div class="seg float-l" role="group" aria-label="Vue">
       <button data-act="lbView" data-k="front" aria-pressed="${d.view==='front'}">Face</button>
@@ -923,9 +927,7 @@ function lookbook(){
     <button class="primary" data-act="lbSave"${ready?'':' disabled'}>${ready?'Ajouter au Lookbook':'Choisis un haut et un bas'}</button>
     <p class="small mute" style="margin:10px 0 0;text-align:center">Touche une pièce pour l’ajouter au look, touche-la encore pour l’enlever.</p>
     ${lbRow('top','Hauts')}${lbRow('bottom','Bas')}${lbRow('acc','Accessoires')}
-    <h2>Mes looks (${S.lookbook.length})</h2>
-    ${S.lookbook.length?`<div class="grid">${S.lookbook.map(lbCard).join('')}</div>`:`<p class="small mute" style="margin:0">Aucun look pour l’instant.</p>`}
-    ${sh?`<div class="sheet"><pre>${esc(lbText(sh))}</pre><button class="ghost" data-act="lbCopy" data-k="${sh.id}">Copier la fiche</button></div>`:''}
+    ${board||'<h2>Mes looks</h2><p class="small mute" style="margin:0">Aucun look pour l’instant.</p>'}
   </div>`;
 }
 
@@ -1082,8 +1084,8 @@ document.addEventListener('click',e=>{
     case 'openLook':{const l=S.looks.find(x=>x.id==k);if(l){S.top=l.top;S.bottom=l.bottom;S.fabric=l.fabric;S.fabricB=l.fabricB||l.fabric;S.mode='outfit';S.editId=null;S.c=fixC(Object.assign({},ACCC,l.c));S.acc=Object.assign({},ACC0,l.acc||{});S.marks=(l.marks||[]).map(m=>Object.assign({},DEFMARK,m));S.mi=0;S.view='front';go('studio')}return}
     case 'sheet':openSheet=(openSheet==+k)?null:+k;break;
     case 'del':
-      if(pendingDel==+k){S.looks=S.looks.filter(x=>x.id!=k);pendingDel=null;if(openSheet==+k)openSheet=null}
-      else{pendingDel=+k;setTimeout(()=>{if(pendingDel==+k){pendingDel=null;if(S.tab==='coll')renderTab()}},3000)}
+      if(pendingDel==+k){S.looks=S.looks.filter(x=>x.id!=k);pendingDel=null;if(openSheet==+k)openSheet=null;lbForget(+k)}
+      else{pendingDel=+k;const n=lbUses(+k);if(n)toast(`Utilisée dans ${n} look${n>1?'s':''} du Lookbook`);setTimeout(()=>{if(pendingDel==+k){pendingDel=null;if(S.tab==='coll')renderTab()}},3000)}
       break;
     case 'copy':{
       const l=S.looks.find(x=>x.id==k);if(!l)return;

@@ -17,6 +17,6 @@ export function charger(stockage = {}) {
   };
   vm.createContext(ctx);
   vm.runInContext(code + '\n;globalThis.__t={mergePiece,applyPiece,makePiece,load,build,DEF,DEFMARK,ACC0,get S(){return S},set S(v){S=v}' +
-    (code.includes('function lookG(') ? ',lookG,lbText,lbUses' : '') + '};', ctx);
+    (code.includes('function lookG(') ? ',lookG,lbText,lbUses,lbForget,lookbook' : '') + '};', ctx);
   return ctx.__t;
 }
