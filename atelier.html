@@ -1,0 +1,1055 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Atelier – créer ma marque de vêtements</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..900&family=Bebas+Neue&family=Syne:wght@800&family=Unbounded:wght@800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#e9eaec; --panel:#f5f5f3; --ink:#16171a; --mute:#5d6068; --line:#c8cad0;
+  --acc:#c8283c; --accInk:#ffffff; --focus:#0a64d8; --good:#1c7a45; --bad:#b3261e;
+  color-scheme: light dark;
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px);
+  padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#141518; --panel:#1c1e22; --ink:#efeee8; --mute:#9a9da6; --line:#33363d;
+    --acc:#ef5a6e; --accInk:#17080b; --focus:#6aa9ff; --good:#58c98a; --bad:#ff8a80;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#141518; --panel:#1c1e22; --ink:#efeee8; --mute:#9a9da6; --line:#33363d;
+  --acc:#ef5a6e; --accInk:#17080b; --focus:#6aa9ff; --good:#58c98a; --bad:#ff8a80;
+}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*,*::before,*::after{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:400 15px/1.45 'Archivo',system-ui,-apple-system,'Segoe UI',sans-serif;padding-bottom:84px;-webkit-text-size-adjust:100%}
+button,input,textarea{font-family:inherit}
+:focus-visible{outline:2px solid var(--focus);outline-offset:2px}
+
+.bar{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--bg);border-bottom:1px solid var(--line);padding:12px 16px 10px;display:flex;align-items:baseline;justify-content:space-between;gap:12px}
+.mark{font-weight:850;font-stretch:125%;font-size:20px;letter-spacing:-.01em;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.sub{color:var(--mute);font-size:13px;white-space:nowrap}
+
+.tabs{position:fixed;left:0;right:0;bottom:0;z-index:6;display:grid;grid-template-columns:repeat(5,1fr);background:var(--bg);border-top:1px solid var(--line);padding-bottom:env(safe-area-inset-bottom,0px)}
+.tabs button{position:relative;background:none;border:0;color:var(--mute);padding:14px 2px 13px;font-weight:600;font-size:12.5px}
+.tabs button[aria-selected="true"]{color:var(--ink)}
+.tabs button[aria-selected="true"]::before{content:"";position:absolute;left:22%;right:22%;top:-1px;height:3px;background:var(--acc)}
+
+.stage{position:relative;background:linear-gradient(#e8e9ec,#b2b5bb)}
+.stage svg{display:block;width:100%;height:min(62svh,520px)}
+.stage path[data-p]{cursor:pointer}
+.seg{display:inline-flex;border:1px solid rgba(0,0,0,.28);background:rgba(255,255,255,.78);border-radius:999px;overflow:hidden}
+.seg button{border:0;background:none;padding:9px 15px;font-weight:600;font-size:13.5px;color:#16171a}
+.seg button[aria-pressed="true"]{background:#16171a;color:#fff}
+.float-l{position:absolute;left:12px;top:12px}
+.roll{position:absolute;right:12px;top:12px;border:1px solid rgba(0,0,0,.28);background:rgba(255,255,255,.78);color:#16171a;border-radius:999px;padding:9px 15px;font-weight:600;font-size:13.5px}
+.hint{position:absolute;left:0;right:0;bottom:8px;text-align:center;font-size:12.5px;color:#3b3d42}
+
+.pad{padding:16px}
+h2{font-size:15.5px;font-weight:750;font-stretch:112%;margin:24px 0 9px}
+h2:first-child{margin-top:4px}
+.mute{color:var(--mute)}
+.small{font-size:13px}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{display:inline-flex;align-items:center;gap:8px;min-height:40px;padding:8px 13px;border:1px solid var(--line);background:var(--panel);color:var(--ink);border-radius:999px;font-weight:500;font-size:14px}
+.modebar{padding:12px 16px 10px;display:grid;gap:8px;background:var(--bg)}
+.seg2{display:grid;grid-auto-flow:column;grid-auto-columns:1fr;border:1px solid var(--line);border-radius:10px;overflow:hidden;background:var(--panel)}
+.seg2 button{border:0;background:none;padding:11px 6px;font-weight:650;font-size:14px;color:var(--ink)}
+.seg2 button[aria-pressed="true"]{background:var(--ink);color:var(--bg)}
+.pcs .preset{flex:0 0 110px}
+.pcs .preset .th svg{height:130px}
+.hs{flex-wrap:nowrap;overflow-x:auto;margin:0 -16px;padding:0 16px 6px;scrollbar-width:none}
+.hs::-webkit-scrollbar{display:none}
+.hs .chip{flex:none;white-space:nowrap}
+.chip[aria-pressed="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.dot{width:14px;height:14px;border-radius:50%;border:1px solid rgba(128,128,128,.7);flex:none}
+.pal{display:flex;flex-wrap:wrap;gap:9px;margin-top:12px;align-items:center}
+.sw{width:34px;height:34px;border-radius:50%;border:2px solid var(--bg);outline:1px solid var(--line);padding:0}
+.sw[aria-pressed="true"]{outline:2px solid var(--ink)}
+.colorin{width:34px;height:34px;padding:0;border:0;background:none;border-radius:50%;cursor:pointer}
+.primary{width:100%;background:var(--acc);color:var(--accInk);border:0;border-radius:10px;padding:14px;font-weight:700;font-size:16px}
+.ghost{background:none;border:1px solid var(--line);color:var(--ink);border-radius:10px;padding:10px 14px;font-weight:600;font-size:14px}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+
+.scroller{display:flex;gap:10px;overflow-x:auto;padding-bottom:6px;margin:0 -16px;padding-left:16px;padding-right:16px;scroll-snap-type:x proximity}
+.preset{flex:0 0 118px;scroll-snap-align:start;text-align:left;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:0 0 9px;overflow:hidden;color:var(--ink)}
+.preset .th{background:linear-gradient(#e8e9ec,#b2b5bb)}
+.preset svg{display:block;width:100%;height:150px}
+.preset span{display:block;padding:7px 9px 0;font-size:12.5px;font-weight:600;line-height:1.25}
+
+.field{margin:0 0 14px}
+.field label{display:block;font-size:13px;font-weight:600;color:var(--mute);margin-bottom:5px}
+.field input,.field textarea{width:100%;padding:12px;border:1px solid var(--line);border-radius:8px;background:var(--panel);color:var(--ink);font-size:16px;font-weight:500}
+.field textarea{min-height:110px;resize:vertical;line-height:1.45}
+.logos{display:grid;gap:12px;margin-top:12px}
+.logos svg{display:block;width:100%;height:auto;border-radius:6px}
+.logos .mini{display:flex;gap:12px;align-items:center}
+.logos .mini>div:first-child{flex:1 1 auto}
+.logos .mini>div:last-child{flex:0 0 92px}
+
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px}
+.look{background:var(--panel);border:1px solid var(--line);border-radius:10px;overflow:hidden}
+.look .th{background:linear-gradient(#e8e9ec,#b2b5bb)}
+.look svg{display:block;width:100%;height:190px}
+.look .in{padding:10px}
+.look input{width:100%;border:0;border-bottom:1px solid var(--line);background:none;color:var(--ink);font-size:15px;font-weight:650;padding:2px 0 6px;margin-bottom:8px}
+.look .acts{display:flex;gap:6px;flex-wrap:wrap}
+.look .acts button{flex:1 1 auto;padding:8px 6px;font-size:13px;font-weight:600;border:1px solid var(--line);border-radius:8px;background:none;color:var(--ink)}
+.sheet{margin-top:14px;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:14px}
+.sheet pre{margin:0 0 12px;white-space:pre-wrap;font:500 13.5px/1.55 'Archivo',sans-serif}
+
+.kpis{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:14px 0}
+.kpi{border-top:3px solid var(--ink);padding:8px 0 4px}
+.kpi b{display:block;font-size:22px;font-weight:800;font-stretch:112%;letter-spacing:-.01em}
+.kpi span{font-size:13px;color:var(--mute)}
+.kpi.neg{border-color:var(--bad)} .kpi.neg b{color:var(--bad)}
+.kpi.pos{border-color:var(--good)}
+.numgrid{display:grid;grid-template-columns:1fr 1fr;gap:0 12px}
+.checks{list-style:none;margin:0;padding:0}
+.checks li{border-bottom:1px solid var(--line)}
+.checks label{display:flex;gap:12px;align-items:flex-start;padding:12px 2px}
+.checks input{width:22px;height:22px;margin:1px 0 0;accent-color:var(--acc);flex:none}
+.checks .done{color:var(--mute);text-decoration:line-through}
+.checks small{display:block;color:var(--mute);font-size:12.5px}
+.shapes{display:grid;grid-template-columns:repeat(auto-fill,minmax(52px,1fr));gap:8px}
+.shp{height:48px;display:grid;place-items:center;border:1px solid var(--line);background:var(--panel);border-radius:10px;padding:0}
+.shp[aria-pressed="true"]{border-color:var(--ink);outline:2px solid var(--ink)}
+.field input[type=range]{padding:0;border:0;background:none;height:32px;accent-color:var(--acc)}
+.note{font-size:13px;color:var(--bad);margin:8px 0 0}
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(76px + env(safe-area-inset-bottom,0px));background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:999px;font-weight:600;font-size:14px;z-index:9;opacity:0;pointer-events:none;transition:opacity .15s}
+.toast.on{opacity:1}
+@media (prefers-reduced-motion: reduce){.toast{transition:none}}
+@media (min-width:700px){main{max-width:640px;margin:0 auto}.stage{border-radius:0 0 14px 14px}}
+</style>
+</head>
+<body>
+<header class="bar"><div class="mark" id="hdrName"></div><div class="sub">Atelier de création</div></header>
+<main id="app"></main>
+<nav class="tabs" id="tabs" role="tablist">
+  <button role="tab" data-act="tab" data-t="studio">Atelier</button>
+  <button role="tab" data-act="tab" data-t="mark">Marquage</button>
+  <button role="tab" data-act="tab" data-t="brand">Marque</button>
+  <button role="tab" data-act="tab" data-t="coll">Collection</button>
+  <button role="tab" data-act="tab" data-t="biz">Business</button>
+</nav>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script>
+/* ---------- données ---------- */
+const KEY='atelier-marque-v1';
+const TOPS={
+  bomber:{label:'Bomber',zones:{tBody:'Corps',tSleeve:'Manches',tAccent:'Empiècements',tCollar:'Col',tTrim:'Bords-côtes'}},
+  hoodie:{label:'Hoodie',zones:{tBody:'Corps',tSleeve:'Manches',tAccent:'Poche kangourou',tCollar:'Capuche',tTrim:'Bords-côtes'}},
+  track:{label:'Veste de survêt',zones:{tBody:'Corps',tSleeve:'Manches',tAccent:'Bandes latérales',tCollar:'Col montant',tTrim:'Bords-côtes'}},
+  tshirt:{label:'T-shirt',zones:{tBody:'Corps',tSleeve:'Manches',tAccent:'Imprimé / empiècement',tCollar:'Col',tTrim:'Ourlets'}},
+  longsleeve:{label:'T-shirt manches longues',zones:{tBody:'Corps',tSleeve:'Manches',tAccent:'Imprimé / empiècement',tCollar:'Col',tTrim:'Poignets et ourlet'}},
+  polo:{label:'Polo',zones:{tBody:'Corps',tSleeve:'Manches',tAccent:'Bande poitrine',tCollar:'Col polo',tTrim:'Ourlets'}},
+  crew:{label:'Sweat col rond',zones:{tBody:'Corps',tSleeve:'Manches',tAccent:'Bande poitrine',tCollar:'Col',tTrim:'Bords-côtes'}},
+  shirt:{label:'Chemise',zones:{tBody:'Corps',tSleeve:'Manches',tAccent:'Poches / empiècement',tCollar:'Col',tTrim:'Patte de boutons et poignets'}},
+  denimjk:{label:'Veste en jean',zones:{tBody:'Corps',tSleeve:'Manches',tAccent:'Poches / empiècement',tCollar:'Col',tTrim:'Ceinture et poignets'}},
+  wind:{label:'Coupe-vent',zones:{tBody:'Corps',tSleeve:'Manches',tAccent:'Empiècement',tCollar:'Capuche',tTrim:'Poignets et ourlet'}},
+  puffer:{label:'Doudoune',zones:{tBody:'Corps',tSleeve:'Manches',tAccent:'Bande basse',tCollar:'Col montant',tTrim:'Bords-côtes'}},
+  vest:{label:'Gilet sans manches',zones:{tBody:'Corps',tSleeve:'Emmanchures',tAccent:'Bande basse',tCollar:'Col montant',tTrim:'Bords-côtes'}},
+  jersey:{label:'Débardeur / maillot',zones:{tBody:'Corps',tSleeve:'Bretelles',tAccent:'Bande / numéro',tCollar:'Encolure',tTrim:'Ourlet'}},
+  cardigan:{label:'Cardigan',zones:{tBody:'Corps',tSleeve:'Manches',tAccent:'Bande / motif',tCollar:'Col V',tTrim:'Bords-côtes'}},
+  varsity:{label:'Veste universitaire',zones:{tBody:'Corps',tSleeve:'Manches',tAccent:'Écusson / empiècement',tCollar:'Col côtelé',tTrim:'Bords-côtes'}},
+  biker:{label:'Perfecto',zones:{tBody:'Corps',tSleeve:'Manches',tAccent:'Épaulettes',tCollar:'Revers',tTrim:'Ceinture'}},
+  coat:{label:'Manteau long',zones:{tBody:'Corps',tSleeve:'Manches',tAccent:'Poches / empiècement',tCollar:'Col et revers',tTrim:'Ourlet'}},
+  trench:{label:'Trench',zones:{tBody:'Corps',tSleeve:'Manches',tAccent:'Ceinture',tCollar:'Col et revers',tTrim:'Ourlet'}}
+};
+const BOTTOMS={
+  sweat:{label:'Jogger large',zones:{bLegs:'Jambes',bStripe:'Bande latérale',bAccent:'Empiècement',bTrim:'Taille et bas'}},
+  wide:{label:'Pantalon large',zones:{bLegs:'Jambes',bStripe:'Bande latérale',bAccent:'Empiècement',bTrim:'Ceinture'}},
+  cargo:{label:'Cargo',zones:{bLegs:'Jambes',bStripe:'Côtés',bAccent:'Poches cargo',bTrim:'Ceinture'}},
+  jean:{label:'Jean baggy',zones:{bLegs:'Jambes',bStripe:'Coutures côtés',bAccent:'Empiècement genoux',bTrim:'Ceinture'}},
+  taper:{label:'Pantalon fuselé',zones:{bLegs:'Jambes',bStripe:'Bande latérale',bAccent:'Empiècement',bTrim:'Taille et chevilles'}},
+  short:{label:'Short',zones:{bLegs:'Short',bStripe:'Bande latérale',bAccent:'Poche',bTrim:'Taille et ourlets'}},
+  bermuda:{label:'Bermuda cargo',zones:{bLegs:'Bermuda',bStripe:'Côtés',bAccent:'Poches',bTrim:'Ceinture et ourlets'}},
+  skirt:{label:'Jupe',zones:{bLegs:'Jupe',bStripe:'Panneau central',bAccent:'Poches',bTrim:'Ceinture et ourlet'}},
+  pleated:{label:'Pantalon à pinces',zones:{bLegs:'Jambes',bStripe:'Pli central',bAccent:'Revers',bTrim:'Ceinture'}},
+  flare:{label:'Pantalon flare',zones:{bLegs:'Jambes',bStripe:'Bande latérale',bAccent:'Empiècement genoux',bTrim:'Ceinture'}}
+};
+const FABRICS={fleece:'Molleton',nylon:'Nylon',leather:'Cuir',denim:'Denim'};
+const ACC0={head:'none',glass:'wrap',ear:'none',neck:'none',bag:'none',wrist:'none',belt:'none',sock:'none',shoe:'sneaker'};
+const ACCC={aHead:'#111214',aGlass:'#17181b',aEar:'#e7b93c',aNeck:'#c8283c',aBag:'#111214',aWrist:'#b9bcc2',aBelt:'#111214',aSock:'#f3f1ea',aShoe:'#f4f4f2'};
+const ACC={
+  head:{label:'Couvre-chef',z:'aHead',opts:{none:'Aucun',cap:'Casquette',beanie:'Bonnet',bob:'Bob',balaclava:'Cagoule',headband:'Bandeau',fedora:'Chapeau',beret:'Béret'}},
+  glass:{label:'Lunettes',z:'aGlass',opts:{none:'Aucune',wrap:'Sport enveloppantes',round:'Rondes',square:'Carrées',aviator:'Aviateur'}},
+  ear:{label:'Boucles d’oreilles',z:'aEar',opts:{none:'Aucune',hoop:'Créoles',stud:'Puces'}},
+  neck:{label:'Cou',z:'aNeck',opts:{none:'Aucun',scarf:'Écharpe',chain:'Chaîne',bandana:'Bandana',tie:'Cravate'}},
+  bag:{label:'Sac',z:'aBag',opts:{none:'Aucun',cross:'Bandoulière',waist:'Banane',back:'Sac à dos',tote:'Tote bag',duffle:'Sac de sport'}},
+  wrist:{label:'Poignets et mains',z:'aWrist',opts:{none:'Aucun',watch:'Montre',band:'Bracelets',rings:'Bagues',gloves:'Gants'}},
+  belt:{label:'Ceinture',hint:'visible sous un haut court',z:'aBelt',opts:{none:'Aucune',classic:'Classique',wide:'Large',chain:'Chaîne'}},
+  sock:{label:'Chaussettes',hint:'visibles avec short, bermuda, jupe',z:'aSock',opts:{none:'Aucune',crew:'Mi-mollet',tube:'Hautes rayées'}},
+  shoe:{label:'Chaussures',z:'aShoe',opts:{sneaker:'Sneakers',high:'Montantes',chunky:'Chunky',loafer:'Mocassins',boot:'Boots',slide:'Claquettes'}}
+};
+const AZL={aHead:'Couvre-chef',aGlass:'Lunettes',aEar:'Boucles d’oreilles',aNeck:'Écharpe / cou',aBag:'Sac',aWrist:'Montre / gants',aBelt:'Ceinture',aSock:'Chaussettes',aShoe:'Chaussures'};
+const PAL=['#111214','#2b2d31','#6b6f76','#b9bcc2','#f3f1ea','#e9e1cf','#8b1a2b','#c8283c','#e46a2e','#e7b93c','#5f6b3a','#243529','#2f5d50','#7fb7c9','#2b4a8a','#1e2a52','#7a4fa3','#d98ab0','#6a4a35'];
+const NAMES=[['Noir','#111214'],['Anthracite','#2b2d31'],['Gris','#6b6f76'],['Gris clair','#b9bcc2'],['Blanc','#ffffff'],['Blanc cassé','#f3f1ea'],['Écru','#e9e1cf'],['Bordeaux','#8b1a2b'],['Rouge','#c8283c'],['Orange','#e46a2e'],['Jaune moutarde','#e7b93c'],['Vert olive','#5f6b3a'],['Vert forêt','#243529'],['Vert sapin','#2f5d50'],['Bleu ciel','#7fb7c9'],['Bleu roi','#2b4a8a'],['Bleu marine','#1e2a52'],['Violet','#7a4fa3'],['Rose','#d98ab0'],['Marron','#6a4a35']];
+const PRESETS=[
+ {n:'Survêt blanc, liserés rouges',top:'track',bottom:'sweat',fabric:'nylon',c:{tBody:'#f3f1ea',tSleeve:'#f3f1ea',tAccent:'#e2dfd5',tCollar:'#f3f1ea',tTrim:'#f3f1ea',bLegs:'#f3f1ea',bStripe:'#e2dfd5',bAccent:'#f3f1ea',bTrim:'#f3f1ea',stitch:'#c8283c'},acc:{glass:'wrap'}},
+ {n:'Survêt noir et bordeaux, casquette',top:'track',bottom:'sweat',fabric:'nylon',c:{tBody:'#111214',tSleeve:'#8b1a2b',tAccent:'#8b1a2b',tCollar:'#111214',tTrim:'#111214',bLegs:'#111214',bStripe:'#8b1a2b',bAccent:'#111214',bTrim:'#8b1a2b',stitch:'#f3f1ea',aHead:'#111214'},acc:{head:'cap',glass:'wrap'}},
+ {n:'Hoodie olive et noir, bonnet',top:'hoodie',bottom:'sweat',fabric:'fleece',c:{tBody:'#5f6b3a',tSleeve:'#111214',tAccent:'#111214',tCollar:'#111214',tTrim:'#111214',bLegs:'#111214',bStripe:'#5f6b3a',bAccent:'#5f6b3a',bTrim:'#111214',stitch:'#2b2d31',aHead:'#111214'},acc:{head:'beanie',glass:'none'}},
+ {n:'Doudoune noire, cargo olive, sac',top:'puffer',bottom:'cargo',fabric:'nylon',c:{tBody:'#111214',tSleeve:'#111214',tAccent:'#2b2d31',tCollar:'#111214',tTrim:'#2b2d31',bLegs:'#5f6b3a',bStripe:'#5f6b3a',bAccent:'#4c5630',bTrim:'#111214',stitch:'#6b6f76',aNeck:'#e7b93c',aBag:'#111214',aHead:'#5f6b3a',aShoe:'#6a4a35'},acc:{head:'beanie',glass:'none',neck:'scarf',bag:'cross',shoe:'boot'}},
+ {n:'T-shirt écru, short noir, bob',top:'tshirt',bottom:'short',fabric:'fleece',c:{tBody:'#f3f1ea',tSleeve:'#f3f1ea',tAccent:'#111214',tCollar:'#111214',tTrim:'#f3f1ea',bLegs:'#111214',bStripe:'#111214',bAccent:'#2b2d31',bTrim:'#111214',stitch:'#b9bcc2',aHead:'#e9e1cf',aWrist:'#b9bcc2'},acc:{head:'bob',glass:'round',wrist:'watch',shoe:'slide'}},
+ {n:'Sweat gris, cargo noir, sac à dos',top:'crew',bottom:'cargo',fabric:'fleece',c:{tBody:'#b9bcc2',tSleeve:'#b9bcc2',tAccent:'#c8283c',tCollar:'#6b6f76',tTrim:'#6b6f76',bLegs:'#111214',bStripe:'#111214',bAccent:'#2b2d31',bTrim:'#111214',stitch:'#6b6f76',aBag:'#111214'},acc:{glass:'square',bag:'back'}},
+ {n:'Veste et jean baggy, bandana',top:'denimjk',bottom:'jean',fabric:'denim',c:{tBody:'#4a6a9a',tSleeve:'#4a6a9a',tAccent:'#4a6a9a',tCollar:'#4a6a9a',tTrim:'#4a6a9a',bLegs:'#2b3f66',bStripe:'#2b3f66',bAccent:'#2b3f66',bTrim:'#2b3f66',stitch:'#e7b93c',aNeck:'#c8283c',aHead:'#e9e1cf'},acc:{head:'bob',neck:'bandana',glass:'none'}},
+ {n:'Maillot rouge et bermuda',top:'jersey',bottom:'bermuda',fabric:'nylon',c:{tBody:'#c8283c',tSleeve:'#111214',tAccent:'#f3f1ea',tCollar:'#111214',tTrim:'#111214',bLegs:'#111214',bStripe:'#c8283c',bAccent:'#111214',bTrim:'#c8283c',stitch:'#f3f1ea',aWrist:'#f3f1ea',aShoe:'#f4f4f2'},acc:{glass:'wrap',wrist:'band',shoe:'high'}},
+ {n:'Manteau long noir, pantalon à pinces',top:'coat',bottom:'pleated',fabric:'fleece',c:{tBody:'#2b2d31',tSleeve:'#2b2d31',tAccent:'#111214',tCollar:'#111214',tTrim:'#111214',bLegs:'#6b6f76',bStripe:'#6b6f76',bAccent:'#2b2d31',bTrim:'#111214',stitch:'#6b6f76',aNeck:'#8b1a2b',aShoe:'#111214'},acc:{glass:'round',neck:'scarf',shoe:'loafer',belt:'classic'}},
+ {n:'Trench écru, pantalon flare',top:'trench',bottom:'flare',fabric:'denim',c:{tBody:'#e9e1cf',tSleeve:'#e9e1cf',tAccent:'#6a4a35',tCollar:'#e9e1cf',tTrim:'#e9e1cf',bLegs:'#6a4a35',bStripe:'#6a4a35',bAccent:'#6a4a35',bTrim:'#6a4a35',stitch:'#b9bcc2',aShoe:'#6a4a35',aEar:'#e7b93c'},acc:{glass:'aviator',ear:'hoop',shoe:'boot'}},
+ {n:'Perfecto cuir et jean baggy',top:'biker',bottom:'jean',fabric:'leather',c:{tBody:'#111214',tSleeve:'#111214',tAccent:'#6b6f76',tCollar:'#2b2d31',tTrim:'#2b2d31',bLegs:'#4a6a9a',bStripe:'#4a6a9a',bAccent:'#4a6a9a',bTrim:'#2b3f66',stitch:'#b9bcc2',aBelt:'#111214',aShoe:'#111214'},acc:{glass:'wrap',belt:'wide',shoe:'chunky'}},
+ {n:'Varsity rouge, jogger noir',top:'varsity',bottom:'sweat',fabric:'fleece',c:{tBody:'#c8283c',tSleeve:'#f3f1ea',tAccent:'#f3f1ea',tCollar:'#111214',tTrim:'#111214',bLegs:'#111214',bStripe:'#c8283c',bAccent:'#111214',bTrim:'#111214',stitch:'#f3f1ea',aHead:'#111214'},acc:{head:'cap',glass:'none',bag:'duffle',wrist:'rings'}},
+ {n:'Cardigan crème, jupe et chaussettes',top:'cardigan',bottom:'skirt',fabric:'fleece',c:{tBody:'#e9e1cf',tSleeve:'#e9e1cf',tAccent:'#c8283c',tCollar:'#e9e1cf',tTrim:'#e9e1cf',bLegs:'#2b2d31',bStripe:'#6b6f76',bAccent:'#2b2d31',bTrim:'#111214',stitch:'#b9bcc2',aSock:'#f3f1ea',aHead:'#c8283c'},acc:{head:'headband',glass:'none',ear:'stud',sock:'tube',shoe:'sneaker'}},
+ {n:'Bomber cuir vert et écru, chaîne',top:'bomber',bottom:'wide',fabric:'leather',c:{tBody:'#243529',tSleeve:'#f3f1ea',tAccent:'#f3f1ea',tCollar:'#243529',tTrim:'#243529',bLegs:'#2b2d31',bStripe:'#2b2d31',bAccent:'#2b2d31',bTrim:'#2b2d31',stitch:'#b9bcc2',aNeck:'#b9bcc2'},acc:{glass:'wrap',neck:'chain'}}
+];
+const VIBES=['Streetwear','Y2K','Techwear','Minimal','Workwear','Sportswear','Vintage','Luxe discret'];
+const LOGOS={
+  bold:{l:'Massif',ff:"'Archivo','Arial Black',sans-serif",w:900,ls:'0',up:1,st:'125%'},
+  cond:{l:'Condensé',ff:"'Bebas Neue','Arial Narrow',sans-serif",w:400,ls:'.12em',up:1,st:'100%'},
+  wide:{l:'Rond',ff:"'Unbounded','Arial',sans-serif",w:800,ls:'-.02em',up:0,st:'100%'},
+  sharp:{l:'Tranchant',ff:"'Syne','Arial',sans-serif",w:800,ls:'-.01em',up:1,st:'100%'},
+  tech:{l:'Technique',ff:"'Archivo','Arial Narrow',sans-serif",w:700,ls:'.3em',up:1,st:'62%'}
+};
+const CHECKS=[
+ ['Définir l’univers et le public','Qui porte tes pièces, dans quelle ambiance ? Utilise l’onglet Marque.'],
+ ['Vérifier que le nom est libre','Instagram, nom de domaine, recherche de marque à l’INPI.'],
+ ['Choisir 2 ou 3 pièces pour une première capsule','Mieux vaut peu de pièces bien finies que beaucoup de moyennes.'],
+ ['Exporter les fiches techniques','Onglet Collection : une fiche par pièce à envoyer aux ateliers.'],
+ ['Demander des devis à 3 ateliers ou fournisseurs','Compare prix unitaire, minimum de commande, délais.'],
+ ['Commander un échantillon avant toute production','Vérifie coupe, matière, couleurs et finitions en vrai.'],
+ ['Préparer les visuels de lancement','Rendus de l’Atelier, photos de l’échantillon, vidéos courtes.'],
+ ['Lancer en précommande','Tu produis ce qui est vendu : moins de stock, moins de risque.'],
+ ['Choisir le statut juridique','Par exemple micro-entreprise : renseigne-toi sur les règles qui t’concernent.'],
+ ['Ouvrir la boutique et les comptes sociaux','Site de vente, Instagram, TikTok, mêmes pseudos partout.']
+];
+CHECKS[8][1]='Par exemple micro-entreprise : renseigne-toi sur les règles qui s’appliquent à ta situation.';
+
+const PL={
+ 'chest-l':{v:'f',x:178,y:116,w:24,cm:8,l:'Poitrine gauche'},
+ 'chest-r':{v:'f',x:122,y:116,w:24,cm:8,l:'Poitrine droite'},
+ 'chest-c':{v:'f',x:150,y:126,w:52,cm:18,l:'Centre poitrine'},
+ 'belly':{v:'f',x:150,y:168,w:64,cm:24,l:'Ventre'},
+ 'sleeve-l':{v:'f',x:0,y:0,w:20,cm:7,l:'Manche gauche'},
+ 'sleeve-r':{v:'f',x:0,y:0,w:20,cm:7,l:'Manche droite'},
+ 'thigh-l':{v:'f',x:178,y:300,w:22,cm:9,l:'Cuisse gauche'},
+ 'thigh-r':{v:'f',x:122,y:300,w:22,cm:9,l:'Cuisse droite'},
+ 'cap':{v:'f',x:150,y:12,w:14,cm:5,l:'Casquette / bonnet'},
+ 'nape':{v:'b',x:150,y:86,w:26,cm:8,l:'Nuque'},
+ 'back-c':{v:'b',x:150,y:138,w:70,cm:28,l:'Dos centre'},
+ 'back-low':{v:'b',x:150,y:188,w:56,cm:22,l:'Bas du dos'},
+ 'pocket-l':{v:'b',x:178,y:262,w:18,cm:7,l:'Poche arrière gauche'},
+ 'pocket-r':{v:'b',x:122,y:262,w:18,cm:7,l:'Poche arrière droite'}
+};
+const TECH={embroidery:'Brodé',print:'Imprimé',patch:'Écusson',flock:'Flocage',puff:'Relief 3D'};
+const SHAPES={
+ star:{l:'Étoile',d:'M0 -11 L3.2 -3.4 L11 -3.4 L4.8 1.6 L7 9.5 L0 4.8 L-7 9.5 L-4.8 1.6 L-11 -3.4 L-3.2 -3.4 Z'},
+ bolt:{l:'Éclair',d:'M3 -11 L-6 1 L-1 1 L-3 11 L6 -2 L1 -2 Z'},
+ diamond:{l:'Losange',d:'M0 -11 L9 0 L0 11 L-9 0 Z'},
+ cross:{l:'Croix',d:'M-3 -11 L3 -11 L3 -3 L11 -3 L11 3 L3 3 L3 11 L-3 11 L-3 3 L-11 3 L-11 -3 L-3 -3 Z'},
+ heart:{l:'Cœur',d:'M0 9 C-14 -1 -8 -11 0 -4 C8 -11 14 -1 0 9 Z'},
+ arrow:{l:'Flèche',d:'M-10 -3 L2 -3 L2 -9 L11 0 L2 9 L2 3 L-10 3 Z'},
+ crown:{l:'Couronne',d:'M-11 7 L-11 -5 L-5 1 L0 -8 L5 1 L11 -5 L11 7 Z'},
+ flame:{l:'Flamme',d:'M0 -11 C4 -5 9 -2 8 4 C7 9 3 11 0 11 C-4 11 -8 9 -8 4 C-8 0 -4 -2 -3 -7 C-1 -5 -1 -8 0 -11 Z'},
+ wings:{l:'Ailes',d:'M0 4 C-4 -2 -10 -4 -12 -9 C-8 -8 -4 -7 0 -3 C4 -7 8 -8 12 -9 C10 -4 4 -2 0 4 Z'},
+ bars:{l:'Barres',d:'M-11 -6 L11 -6 L11 -3 L-11 -3 Z M-11 -1.5 L11 -1.5 L11 1.5 L-11 1.5 Z M-11 3 L11 3 L11 6 L-11 6 Z'},
+ ring:{l:'Cercle',o:'<circle r="9" fill="none" stroke="currentColor" stroke-width="2.6"/>'},
+ sun:{l:'Soleil',o:'<circle r="4.5" fill="currentColor"/><path d="M0 -11 L0 -7 M0 11 L0 7 M-11 0 L-7 0 M11 0 L7 0 M-8 -8 L-5 -5 M8 8 L5 5 M-8 8 L-5 5 M8 -8 L5 -5" stroke="currentColor" stroke-width="2" stroke-linecap="round" fill="none"/>'},
+ smile:{l:'Smiley',o:'<circle r="10" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="-3.5" cy="-3" r="1.4" fill="currentColor"/><circle cx="3.5" cy="-3" r="1.4" fill="currentColor"/><path d="M-5 3 Q0 9 5 3" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>'}
+};
+const DEFMARK={kind:'text',text:'',shape:'star',font:'',place:'chest-l',size:1.2,tech:'embroidery',color:'#f3f1ea',bg:'#111214',rot:0,dx:0,dy:0};
+const QUICK=[
+ {n:'Logo brodé sur la poitrine',marks:[{place:'chest-l',tech:'embroidery',kind:'text',size:1.3}]},
+ {n:'Gros logo dans le dos',marks:[{place:'back-c',tech:'print',kind:'text',size:1}]},
+ {n:'Écusson étoile sur la manche',marks:[{place:'sleeve-l',tech:'patch',kind:'shape',shape:'star',size:1.2}]},
+ {n:'Monogramme en relief sur la cuisse',marks:[{place:'thigh-l',tech:'puff',kind:'mono',size:1.2}]},
+ {n:'Petit logo nuque et poche arrière',marks:[{place:'nape',tech:'embroidery',kind:'text',size:1},{place:'pocket-l',tech:'patch',kind:'shape',shape:'bolt',size:1}]}
+];
+const MARKCAT={'chest-l':'top','chest-r':'top','chest-c':'top','belly':'top','sleeve-l':'top','sleeve-r':'top','nape':'top','back-c':'top','back-low':'top','thigh-l':'bottom','thigh-r':'bottom','pocket-l':'bottom','pocket-r':'bottom','cap':'acc'};
+const CATS={top:'Haut',bottom:'Bas',acc:'Accessoire'};
+const ZOOM={top:'10 30 280 260',bottom:'40 190 220 295',acc:{head:'85 -14 130 120',glass:'95 -4 110 80',ear:'95 -4 110 80',neck:'90 30 120 150',bag:'20 40 260 240',wrist:'30 190 240 80',belt:'60 180 180 70',sock:'60 330 180 150',shoe:'40 400 220 90'}};
+const DEF={
+  mode:'piece',cat:'top',accGroup:'head',editId:null,fabricB:'leather',
+  tab:'studio',top:'bomber',bottom:'wide',fabric:'leather',view:'front',sel:'tBody',
+  c:Object.assign({},ACCC,PRESETS.find(x=>x.top==='bomber').c),acc:Object.assign({},ACC0,PRESETS.find(x=>x.top==='bomber').acc),
+  brand:{name:'MA MARQUE',tag:'',vibes:['Streetwear'],logo:'bold',fg:'#f3f1ea',bg:'#111214',manifesto:''},
+  looks:[],checks:{},marks:[],mi:0,
+  biz:{cost:22,qty:30,fixed:150,ship:4.5,fee:3,price:65}
+};
+let S=load();
+function load(){
+  const d=JSON.parse(JSON.stringify(DEF));
+  try{
+    const r=localStorage.getItem(KEY);
+    if(r){const o=JSON.parse(r);
+      Object.assign(d,o);
+      d.c=Object.assign({},DEF.c,o.c||{});
+      d.acc=Object.assign({},ACC0,o.acc||{});
+      d.fabricB=o.fabricB||o.fabric||d.fabricB;
+      d.marks=Array.isArray(o.marks)?o.marks.map(m=>Object.assign({},DEFMARK,m)):d.marks;
+      d.mi=Math.min(Math.max(0,o.mi||0),Math.max(0,d.marks.length-1));
+      d.brand=Object.assign({},DEF.brand,o.brand||{});
+      d.biz=Object.assign({},DEF.biz,o.biz||{});
+      d.looks=Array.isArray(o.looks)?o.looks:[];
+      d.checks=o.checks||{};
+    }
+  }catch(e){}
+  d.c.stitchB=d.c.stitchB||d.c.stitch;
+  return d;
+}
+function persist(){try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}}
+
+/* ---------- utilitaires ---------- */
+const $=s=>document.querySelector(s);
+const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const eur=n=>isFinite(n)?n.toLocaleString('fr-FR',{style:'currency',currency:'EUR',maximumFractionDigits:2}):'–';
+function toast(t){const e=$('#toast');e.textContent=t;e.classList.add('on');clearTimeout(toast.t);toast.t=setTimeout(()=>e.classList.remove('on'),1800)}
+function hexRgb(h){h=h.replace('#','');return [0,2,4].map(i=>parseInt(h.substr(i,2),16))}
+function colorName(h){const a=hexRgb(h);let best=null,bd=1e9;NAMES.forEach(([n,x])=>{const b=hexRgb(x);const d=(a[0]-b[0])**2+(a[1]-b[1])**2+(a[2]-b[2])**2;if(d<bd){bd=d;best=n}});return best}
+function mir(d){return d.replace(/([MLQCZ])([^MLQCZ]*)/g,(m,c,r)=>{if(c==='Z')return 'Z ';const n=r.trim().split(/[\s,]+/).map(Number);for(let i=0;i<n.length;i+=2)n[i]=300-n[i];return c+n.join(' ')+' '})}
+
+/* ---------- rendu du vêtement ---------- */
+function ovDef(f,id){
+  if(f==='fleece')return `<pattern id="${id}" width="4" height="4" patternUnits="userSpaceOnUse"><circle cx="1" cy="1" r=".7" fill="#fff" opacity=".2"/><circle cx="3" cy="3" r=".7" fill="#000" opacity=".14"/></pattern>`;
+  if(f==='denim')return `<pattern id="${id}" width="3" height="3" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><line x1="0" y1="0" x2="0" y2="3" stroke="#fff" stroke-width=".9" opacity=".17"/><line x1="1.5" y1="0" x2="1.5" y2="3" stroke="#000" stroke-width=".6" opacity=".12"/></pattern>`;
+  if(f==='nylon')return `<linearGradient id="${id}" gradientUnits="userSpaceOnUse" x1="40" y1="40" x2="260" y2="330"><stop offset="0" stop-color="#fff" stop-opacity="0"/><stop offset=".32" stop-color="#fff" stop-opacity=".42"/><stop offset=".48" stop-color="#fff" stop-opacity="0"/><stop offset="1" stop-color="#000" stop-opacity=".2"/></linearGradient>`;
+  return `<linearGradient id="${id}" gradientUnits="userSpaceOnUse" x1="60" y1="60" x2="240" y2="260"><stop offset="0" stop-color="#fff" stop-opacity="0"/><stop offset=".2" stop-color="#fff" stop-opacity=".55"/><stop offset=".28" stop-color="#fff" stop-opacity="0"/><stop offset=".7" stop-color="#fff" stop-opacity="0"/><stop offset=".78" stop-color="#fff" stop-opacity=".25"/><stop offset="1" stop-color="#000" stop-opacity=".3"/></linearGradient>`;
+}
+function mixHex(h,t){const c=hexRgb(h).map(v=>t<0?v*(1+t):v+(255-v)*t);return '#'+c.map(v=>Math.max(0,Math.min(255,Math.round(v))).toString(16).padStart(2,'0')).join('')}
+function lum(h){const c=hexRgb(h);return (0.299*c[0]+0.587*c[1]+0.114*c[2])/255}
+function markCore(m,sz){
+  const B=(typeof S!=='undefined'&&S.brand)?S.brand:{name:'LOGO',logo:'bold'};
+  const k=LOGOS[m.font||B.logo]||LOGOS.bold;
+  const st=`font-family:${k.ff};font-weight:${k.w};letter-spacing:${k.ls};font-stretch:${k.st}`;
+  if(m.kind==='shape'){const sh=SHAPES[m.shape]||SHAPES.star;return {el:`<g transform="scale(${sz/24})">${sh.d?`<path d="${sh.d}" fill="currentColor"/>`:sh.o}</g>`,w:sz,h:sz}}
+  if(m.kind==='mono'){
+    const w2=(B.name||'M').trim().split(/\s+/);
+    const txt=(m.text||(w2.length>1?w2[0][0]+w2[1][0]:(w2[0]||'M').slice(0,2))).toUpperCase().slice(0,3),fs=sz*.46;
+    return {el:`<circle r="${sz/2}" fill="none" stroke="currentColor" stroke-width="${Math.max(.8,sz*.07)}"/><text x="0" y="${fs*.35}" text-anchor="middle" fill="currentColor" style="${st};font-size:${fs}px">${esc(txt)}</text>`,w:sz,h:sz};
+  }
+  let t=(m.text||B.name||'LOGO').trim()||'LOGO';t=k.up?t.toUpperCase():t.toLowerCase();
+  const fs=Math.max(2.5,Math.min(sz/(t.length*.62),sz*.5));
+  return {el:`<text x="0" y="${fs*.35}" text-anchor="middle" fill="currentColor" style="${st};font-size:${fs}px">${esc(t)}</text>`,w:Math.min(sz*1.05,t.length*fs*.62),h:fs*1.1};
+}
+function drawMark(m,G,A,F){
+  const pl=PL[m.place];if(!pl||(pl.v==='f')!==F)return '';
+  let x=pl.x,y=pl.y,bw=pl.w;
+  if(m.place==='sleeve-l'||m.place==='sleeve-r'){
+    const t=G.top;if(t==='vest'||t==='jersey')return '';
+    let sx=66,sy=122,sw=20;
+    if(t==='tshirt'||t==='polo'){sx=80;sy=96;sw=15}else if(t==='puffer'){sx=60;sy=128;sw=22}
+    x=m.place==='sleeve-l'?300-sx:sx;y=sy;bw=sw;
+  }
+  if(m.place==='thigh-l'||m.place==='thigh-r')y=({short:268,bermuda:300,skirt:290})[G.bottom]||300;
+  if(m.place==='cap'){const hy=({cap:12,beanie:6,bob:8,fedora:6,beret:6,headband:18,balaclava:12})[A.head];if(hy===undefined)return '';y=hy}
+  const sz=bw*(Number(m.size)||1),col=m.color||'#f3f1ea',dark=mixHex(col,-.45),core=markCore(m,sz);
+  const g=(attrs)=>`<g ${attrs}>${core.el}</g>`;
+  let inner;
+  if(m.tech==='print')inner=g(`color="${col}" opacity=".96"`);
+  else if(m.tech==='puff')inner=`<g color="#000" opacity=".5" transform="translate(.7 .9)">${core.el}</g><g color="#fff" opacity=".35" transform="translate(-.4 -.5)">${core.el}</g>`+g(`color="${col}"`);
+  else if(m.tech==='flock')inner=g(`color="${col}"`)+g(`color="${col}" fill="${col}" stroke="#fff" stroke-opacity=".5" stroke-width=".7" stroke-dasharray=".1 .9" stroke-linecap="round"`);
+  else if(m.tech==='patch'){
+    const bg=m.bg||'#111214',isT=m.kind==='text',bh=isT?core.h*1.9:Math.max(core.w,core.h)*1.25,w2=isT?core.w+core.h*.9:bh;
+    inner=`<rect x="${-w2/2}" y="${-bh/2}" width="${w2}" height="${bh}" rx="${bh*.18}" fill="${bg}" stroke="${mixHex(bg,-.3)}" stroke-width=".5"/><rect x="${-w2/2+bh*.07}" y="${-bh/2+bh*.07}" width="${w2-bh*.14}" height="${bh-bh*.14}" rx="${bh*.12}" fill="none" stroke="${col}" stroke-opacity=".75" stroke-width=".45" stroke-dasharray="1.1 .8"/>`+g(`color="${col}"`);
+  }else inner=`<g color="#000" opacity=".35" transform="translate(.5 .7)">${core.el}</g>`+g(`color="${col}" stroke="${dark}" stroke-width=".35" stroke-dasharray="1 .7" paint-order="stroke fill"`);
+  return `<g transform="translate(${x+(Number(m.dx)||0)} ${y+(Number(m.dy)||0)}) rotate(${Number(m.rot)||0})" pointer-events="none">${inner}</g>`;
+}
+function P(id,d,m){return m?[{t:'p',id,d},{t:'p',id,d:mir(d)}]:[{t:'p',id,d}]}
+function build(G,uid,sel){
+  const top=G.top||'tshirt',bot=G.bottom||'wide',F=G.view==='front';
+  const C=Object.assign({},ACCC,G.c);C.stitchB=C.stitchB||C.stitch;
+  const only=G.mode==='piece'?G.cat:null;
+  const A0=Object.assign({},ACC0,G.acc||{});
+  let A=A0;
+  if(only==='top'||only==='bottom')A=Object.assign({},ACC0,{glass:'none',shoe:'none'});
+  else if(only==='acc'){A=Object.assign({},ACC0,{glass:'none',shoe:'none'});const gg=G.accGroup||'head';A[gg]=A0[gg]}
+  const showTop=only!=='bottom'&&only!=='acc',showBot=only!=='top'&&only!=='acc';
+  let inBot=false;
+  const L=[];
+  const add=(...a)=>a.forEach(x=>Array.isArray(x)?L.push(...x):L.push(x));
+  const both=(d,f,x)=>`<path d="${d}" fill="${f}" ${x||''}/><path d="${mir(d)}" fill="${f}" ${x||''}/>`;
+  const ln=(d,k)=>({t:'l',d,k,b:inBot});
+  const lm=(d,k)=>[ln(d,k),ln(mir(d),k)];
+  const SKIN='#c4c6cc',SKIN2='#b3b6bd';
+  const bare=top==='tshirt'||top==='polo'||top==='jersey'||top==='vest';
+  const hooded=top==='hoodie'||top==='wind';
+  const WB1='M96 204 L204 204 L204 226 L96 226 Z',WB2='M96 204 L204 204 L204 217 L96 217 Z';
+  const cord=()=>{if(F)add(ln('M146 226 Q144 242 140 254','str'),ln('M154 226 Q156 242 160 254','str'))};
+
+  add(`<ellipse cx="150" cy="478" rx="112" ry="9" fill="#000" opacity=".16"/>`);
+  if(showTop&&hooded&&F)add(P('tCollar','M108 70 Q98 28 150 22 Q202 28 192 70 Q150 84 108 70 Z',0));
+
+  /* tête, couvre-chef, lunettes */
+  add(`<path d="M142 46 L158 46 L160 66 L140 66 Z" fill="${SKIN2}"/><ellipse cx="150" cy="30" rx="17" ry="21" fill="${SKIN}"/>`);
+  add(F?`<path d="M132 26 Q130 6 150 7 Q170 6 168 26 Q150 14 132 26 Z" fill="#26272b"/>`:`<path d="M132 30 Q128 4 150 5 Q172 4 168 30 Q150 40 132 30 Z" fill="#26272b"/>`);
+  if(A.head==='cap'){add(P('aHead',F?'M131 25 Q131 3 150 2 Q169 3 169 25 Q150 19 131 25 Z':'M131 28 Q130 3 150 2 Q170 3 169 28 Q150 22 131 28 Z',0));if(F)add(P('aHead','M133 24 Q150 31 167 24 L178 30 Q150 40 122 30 Z',0))}
+  else if(A.head==='beanie')add(P('aHead','M130 26 Q127 -4 150 -5 Q173 -4 170 26 Z',0),P('aHead','M129 20 L171 20 L171 31 L129 31 Z',0));
+  else if(A.head==='bob')add(P('aHead','M133 22 Q134 0 150 0 Q166 0 167 22 Z',0),P('aHead','M120 22 Q150 32 180 22 L186 30 Q150 42 114 30 Z',0));
+  else if(A.head==='balaclava'){add(P('aHead','M130 28 Q126 0 150 -2 Q174 0 170 28 Q172 46 160 52 L140 52 Q128 46 130 28 Z',0));if(F)add(`<path d="M137 23 Q150 20 163 23 L163 34 Q150 37 137 34 Z" fill="${SKIN}"/>`)}
+  else if(A.head==='headband')add(P('aHead',F?'M132 17 Q150 10 168 17 L168 24 Q150 17 132 24 Z':'M132 20 Q150 12 168 20 L168 27 Q150 19 132 27 Z',0));
+  else if(A.head==='fedora')add(P('aHead','M112 22 Q150 14 188 22 Q150 38 112 22 Z',0),P('aHead','M137 20 Q138 -2 150 -2 Q162 -2 163 20 Z',0));
+  else if(A.head==='beret')add(P('aHead','M124 20 Q122 -4 152 -2 Q182 2 174 22 Q150 12 124 20 Z',0),P('aHead','M150 -5 L154 -5 L154 0 L150 0 Z',0));
+  if(F&&A.glass==='wrap')add(P('aGlass','M134 28 Q150 24 166 28 L165 34 Q150 37 135 34 Z',0));
+  else if(F&&A.glass==='round')add(`<g data-p="aGlass" fill="rgba(0,0,0,.28)" stroke="${C.aGlass}" stroke-width="2"><circle cx="142" cy="31" r="6.5"/><circle cx="158" cy="31" r="6.5"/></g>`);
+  else if(F&&A.glass==='square')add(`<g data-p="aGlass" fill="rgba(0,0,0,.35)" stroke="${C.aGlass}" stroke-width="2"><rect x="134" y="26" width="13" height="9" rx="2"/><rect x="153" y="26" width="13" height="9" rx="2"/></g>`);
+  else if(F&&A.glass==='aviator')add(`<g data-p="aGlass" fill="rgba(0,0,0,.3)" stroke="${C.aGlass}" stroke-width="1.8"><path d="M133 27 L148 27 Q148 39 140 39 Q133 37 133 27 Z"/><path d="M167 27 L152 27 Q152 39 160 39 Q167 37 167 27 Z"/></g>`);
+  if(A.ear==='hoop')add(`<g data-p="aEar" fill="none" stroke="${C.aEar}" stroke-width="1.6"><circle cx="133" cy="40" r="4.2"/><circle cx="167" cy="40" r="4.2"/></g>`);
+  else if(A.ear==='stud')add(`<g data-p="aEar" fill="${C.aEar}"><circle cx="133.5" cy="37" r="2"/><circle cx="166.5" cy="37" r="2"/></g>`);
+
+  /* mains et bras nus */
+  const gl=A.wrist==='gloves',hf=gl?C.aWrist:SKIN2,dp=gl?'data-p="aWrist" ':'';
+  add(`<ellipse ${dp}cx="62" cy="232" rx="10" ry="15" fill="${hf}"/><ellipse ${dp}cx="238" cy="232" rx="10" ry="15" fill="${hf}"/>`);
+  if(bare||!showTop){const arm='M104 68 L74 80 Q60 100 56 170 L57 228 L72 230 Q78 190 98 130 Z';add(`<path d="${arm}" fill="${SKIN}"/><path d="${mir(arm)}" fill="${SKIN}"/>`)}
+  if(!showTop)add(`<path d="M104 66 Q150 56 196 66 L202 104 L200 206 L100 206 L98 104 Z" fill="${SKIN}"/>`);
+
+  if(showBot){inBot=true;
+  /* bas */
+  if(bot==='sweat'||bot==='wide'||bot==='cargo'||bot==='jean'){
+    const J=bot==='jean';
+    add(P('bLegs',J?'M97 214 L150 214 L150 330 L146 452 L64 452 Q84 330 97 214 Z':'M97 214 L150 214 L150 330 L142 452 L72 452 Q86 330 97 214 Z',1));
+    add(P('bStripe',J?'M97 214 L112 214 Q104 330 96 452 L64 452 Q84 330 97 214 Z':'M97 214 L112 214 Q104 330 98 452 L72 452 Q86 330 97 214 Z',1));
+    if(bot==='cargo')add(P('bAccent','M99 272 L127 272 L130 336 L98 338 Z',1),lm('M99 286 L128 286','seam'));
+    else add(P('bAccent','M114 290 Q148 284 148 330 Q148 384 122 396 Q104 360 114 290 Z',1));
+    if(bot==='sweat'){add(P('bTrim','M72 436 L142 436 L142 452 L72 452 Z',1),P('bTrim',WB1,0));cord()}
+    else{
+      add(P('bTrim',WB2,0));
+      if(J)add(lm('M104 224 Q96 330 80 448','seam'));
+      if(F)add(ln('M150 217 L150 262','seam'),lm('M101 219 Q112 246 113 268','seam'));
+      else add(lm('M112 232 L146 232 L146 264 L112 264 Z','seam'));
+    }
+  }else if(bot==='taper'){
+    add(P('bLegs','M98 214 L150 214 L150 320 L138 452 L104 452 Q104 330 98 214 Z',1));
+    add(P('bStripe','M98 214 L110 214 Q110 330 112 452 L104 452 Q104 330 98 214 Z',1));
+    add(P('bAccent','M114 290 Q144 286 144 322 Q142 358 122 368 Q108 340 114 290 Z',1));
+    add(P('bTrim','M104 438 L138 438 L138 452 L104 452 Z',1),P('bTrim',WB1,0));cord();
+  }else if(bot==='pleated'){
+    add(P('bLegs','M98 214 L150 214 L150 330 L146 452 L84 452 Q92 330 98 214 Z',1));
+    add(P('bStripe','M121 218 L127 218 L119 452 L112 452 Z',1));
+    add(P('bAccent','M84 436 L146 436 L146 452 L84 452 Z',1));
+    add(P('bTrim',WB2,0),lm('M110 220 L106 262','seam'),lm('M124 220 L124 266','seam'));
+    if(F)add(ln('M150 217 L150 250','seam'));
+  }else if(bot==='flare'){
+    add(P('bLegs','M98 214 L150 214 L150 320 L148 452 L56 452 Q96 330 98 214 Z',1));
+    add(P('bStripe','M98 214 L110 214 Q108 330 76 452 L56 452 Q96 330 98 214 Z',1));
+    add(P('bAccent','M114 290 Q146 286 146 326 Q140 360 118 372 Q108 340 114 290 Z',1));
+    add(P('bTrim',WB2,0));
+    if(F)add(ln('M150 217 L150 262','seam'));
+  }else if(bot==='short'){
+    const bl='M94 330 L142 330 L140 452 L98 452 Z';
+    add(`<path d="${bl}" fill="${SKIN2}"/><path d="${mir(bl)}" fill="${SKIN2}"/>`);
+    add(P('bLegs','M97 214 L150 214 L150 270 L146 336 L80 336 Q88 280 97 214 Z',1));
+    add(P('bStripe','M97 214 L111 214 Q104 280 100 336 L80 336 Q88 280 97 214 Z',1));
+    add(P('bAccent','M114 252 Q140 248 142 284 L116 292 Q106 270 114 252 Z',1));
+    add(P('bTrim','M80 322 L146 322 L146 336 L80 336 Z',1),P('bTrim',WB1,0));cord();
+  }else if(bot==='bermuda'){
+    const bl='M96 386 L142 386 L140 452 L98 452 Z';
+    add(`<path d="${bl}" fill="${SKIN2}"/><path d="${mir(bl)}" fill="${SKIN2}"/>`);
+    add(P('bLegs','M97 214 L150 214 L150 290 L148 392 L76 392 Q88 300 97 214 Z',1));
+    add(P('bStripe','M97 214 L111 214 Q104 300 100 392 L76 392 Q88 300 97 214 Z',1));
+    add(P('bAccent','M100 296 L126 296 L129 352 L98 354 Z',1),lm('M100 308 L127 308','seam'));
+    add(P('bTrim','M76 380 L148 380 L148 392 L76 392 Z',1),P('bTrim',WB2,0));
+    if(F)add(ln('M150 217 L150 262','seam'));
+  }else{ /* jupe */
+    const bl='M106 340 L144 340 L142 452 L108 452 Z';
+    add(`<path d="${bl}" fill="${SKIN2}"/><path d="${mir(bl)}" fill="${SKIN2}"/>`);
+    add(P('bLegs','M98 212 L202 212 L228 342 L72 342 Z',0));
+    add(P('bStripe','M142 214 L158 214 L170 342 L130 342 Z',0));
+    add(P('bAccent','M108 240 L132 240 L134 262 L106 262 Z',1));
+    add(P('bTrim','M72 330 L228 330 L228 342 L72 342 Z',0),P('bTrim',WB2,0));
+    add(lm('M120 218 L106 340','seam'));
+  }
+
+  /* chaussettes (jambes nues, sous l'ourlet) */
+  if(A.sock!=='none'&&(bot==='short'||bot==='bermuda'||bot==='skirt')){
+    const hem={short:336,bermuda:392,skirt:342}[bot],y0=A.sock==='tube'?hem+8:410,sk=`M96 ${y0} L141 ${y0} L140 452 L98 452 Z`;
+    add(`<path data-p="aSock" d="${sk}" fill="${C.aSock}" stroke="#0003" stroke-width=".7"/><path data-p="aSock" d="${mir(sk)}" fill="${C.aSock}" stroke="#0003" stroke-width=".7"/>`);
+    if(A.sock==='tube'){const st=`M96 ${y0+8} L141 ${y0+8} M96 ${y0+15} L141 ${y0+15}`;add(`<path d="${st}" stroke="${C.bTrim}" stroke-width="2" fill="none" pointer-events="none"/><path d="${mir(st)}" stroke="${C.bTrim}" stroke-width="2" fill="none" pointer-events="none"/>`)}
+  }
+  inBot=false;}else add(both('M97 214 L150 214 L150 330 L142 452 L84 452 Q92 330 97 214 Z',SKIN2));
+  /* ceinture */
+  if(A.belt==='chain')add(`<path data-p="aBelt" d="M96 208 Q150 220 204 208" fill="none" stroke="${C.aBelt}" stroke-width="3" stroke-dasharray="4 2"/><path data-p="aBelt" d="M150 214 Q138 244 160 266" fill="none" stroke="${C.aBelt}" stroke-width="2.4" stroke-dasharray="3 2"/>`);
+  else if(A.belt!=='none'){
+    const bh=A.belt==='wide'?13:8;
+    add(`<path data-p="aBelt" d="M96 206 L204 206 L204 ${206+bh} L96 ${206+bh} Z" fill="${C.aBelt}" stroke="#0005" stroke-width=".7"/>`);
+    if(F)add(`<rect x="141" y="205" width="18" height="${bh+2}" rx="2" fill="none" stroke="#d9dbe0" stroke-width="2" pointer-events="none"/>`);
+  }
+  /* chaussures */
+  const SH={sneaker:'M64 450 L146 450 Q152 466 144 477 L58 477 Q56 460 64 450 Z',high:'M70 428 L140 428 L146 450 Q152 466 144 477 L58 477 Q56 460 64 450 Z',boot:'M68 418 L140 418 L146 452 Q152 466 144 477 L58 477 Q56 460 64 450 Z',slide:'M62 466 L146 466 Q152 472 144 477 L58 477 Q56 472 62 466 Z',chunky:'M58 442 L146 442 Q160 460 148 477 L52 477 Q48 456 58 442 Z',loafer:'M64 458 L146 458 Q152 466 144 477 L58 477 Q56 466 64 458 Z'};
+  if(A.shoe==='none')add(both('M70 456 L142 456 L146 474 Q146 478 140 478 L68 478 Q64 478 66 470 Z',SKIN2));
+  else if(A.shoe==='slide'){
+    const ft='M66 446 L142 446 L146 466 L62 466 Z';
+    add(`<path d="${ft}" fill="${SKIN2}"/><path d="${mir(ft)}" fill="${SKIN2}"/>`);
+    add(P('aShoe',SH.slide,1),P('aShoe','M68 450 L140 450 L142 460 L66 460 Z',1));
+  }else{
+    add(P('aShoe',SH[A.shoe]||SH.sneaker,1));
+    if(A.shoe==='boot')add(both('M58 468 L146 468 L144 477 L58 477 Z','#2b2d31','pointer-events="none"'));
+    if(A.shoe==='high')add(lm('M82 436 L126 436','seam'),lm('M80 443 L128 443','seam'));
+    if(A.shoe==='chunky')add(both('M52 466 L150 466 L152 477 L52 477 Z','#e9e7e0','pointer-events="none"'),lm('M72 452 L124 452','seam'));
+    if(A.shoe==='loafer')add(lm('M76 463 L130 463','seam'));
+    if(A.shoe==='sneaker'||A.shoe==='high')add(`<path d="M58 471 L145 471 M155 471 L242 471" stroke="#9a9da4" stroke-width="1.2" fill="none" pointer-events="none"/>`);
+  }
+
+  if(showTop){
+  /* manches */
+  if(top==='tshirt'||top==='polo')add(P('tSleeve','M106 66 L72 78 Q60 90 56 108 L84 116 L100 108 Z',1),P('tTrim','M56 108 L84 116 L84 128 L56 120 Z',1));
+  else if(top==='puffer'){
+    add(P('tSleeve','M104 64 L72 74 Q42 92 38 168 L40 214 L80 220 Q84 190 94 150 L100 108 Z',1));
+    add(P('tTrim','M39 198 L81 205 L80 220 L40 214 Z',1));
+    add(lm('M52 100 Q70 110 92 104','seam'),lm('M42 140 Q66 150 90 142','seam'));
+  }else if(top==='jersey'||top==='vest'){/* sans manches */}
+  else add(P('tSleeve','M106 66 L74 76 Q54 92 48 168 L49 208 L75 214 Q80 190 94 150 L100 108 Z',1),P('tTrim','M48 192 L76 198 L75 214 L49 208 Z',1));
+
+  /* haut */
+  if(top==='bomber'){
+    add(P('tBody','M104 66 Q150 54 196 66 L202 104 L206 190 Q206 204 198 206 L102 206 Q94 204 94 190 L98 104 Z',0));
+    add(P('tAccent','M108 72 Q128 112 120 148 Q114 178 124 192 L104 192 Q98 160 104 130 Q108 106 100 80 Z',1));
+    add(P('tTrim','M95 192 Q150 197 205 192 L206 206 Q150 211 94 206 Z',0));
+    if(F)add(P('tCollar','M126 60 L149 64 L150 94 L130 84 Q124 74 126 60 Z',1),ln('M150 64 L150 206','zip'));
+    else add(P('tCollar','M124 60 Q150 50 176 60 L176 72 Q150 80 124 72 Z',0),ln('M150 72 L150 192','seam'));
+  }else if(top==='hoodie'){
+    add(P('tBody','M100 66 Q150 58 200 66 L208 108 L210 192 Q210 204 202 206 L98 206 Q90 204 90 192 L92 108 Z',0));
+    add(P('tAccent',F?'M110 134 Q150 120 190 134 Q198 170 188 198 L112 198 Q102 170 110 134 Z':'M112 100 Q150 86 188 100 Q198 150 182 196 L118 196 Q102 150 112 100 Z',0));
+    add(P('tTrim','M91 194 Q150 199 209 194 L210 206 Q150 212 90 206 Z',0));
+    if(F)add(ln('M143 70 L141 112','str'),ln('M157 70 L159 112','str'));
+    else add(P('tCollar','M102 62 Q96 104 128 130 Q150 138 172 130 Q204 104 198 62 Q150 78 102 62 Z',0));
+  }else if(top==='track'){
+    add(P('tBody','M104 66 Q150 56 196 66 L202 106 L206 214 Q206 228 198 230 L102 230 Q94 228 94 214 L98 106 Z',0));
+    add(P('tAccent','M99 104 Q116 150 110 230 L95 230 Q94 170 99 104 Z',1));
+    add(P('tTrim','M95 216 Q150 221 205 216 L206 230 Q150 235 94 230 Z',0));
+    add(lm('M106 68 Q120 110 100 152','seam'));
+    if(F)add(P('tCollar','M126 56 Q150 48 174 56 L175 76 Q150 84 125 76 Z',0),ln('M150 62 L150 232','zip'));
+    else add(P('tCollar','M126 56 Q150 48 174 56 L175 70 Q150 78 125 70 Z',0),ln('M150 70 L150 232','seam'));
+  }else if(top==='tshirt'||top==='longsleeve'||top==='polo'){
+    add(P('tBody','M102 66 Q150 58 198 66 L204 108 L206 220 L94 220 L96 108 Z',0));
+    add(P('tAccent',top==='polo'?'M95 118 L205 118 L205 136 L95 136 Z':(F?'M122 108 L178 108 L178 156 L122 156 Z':'M112 100 L188 100 L188 196 L112 196 Z'),0));
+    add(P('tTrim','M95 208 L205 208 L206 220 L94 220 Z',0));
+    if(top==='polo'){
+      if(F)add(P('tCollar','M124 60 L148 66 L150 86 L132 78 Z',1),ln('M150 66 L150 112','btn'));
+      else add(P('tCollar','M126 60 Q150 70 174 60 L175 68 Q150 78 125 68 Z',0));
+    }else add(P('tCollar',F?'M128 62 Q150 82 172 62 L172 70 Q150 92 128 70 Z':'M128 62 Q150 70 172 62 L172 70 Q150 78 128 70 Z',0));
+  }else if(top==='crew'){
+    add(P('tBody','M100 66 Q150 58 200 66 L208 108 L210 192 Q210 204 202 206 L98 206 Q90 204 90 192 L92 108 Z',0));
+    add(P('tAccent',F?'M92 118 L208 118 L209 152 L91 152 Z':'M92 110 L208 110 L209 160 L91 160 Z',0));
+    add(P('tTrim','M91 194 Q150 199 209 194 L210 206 Q150 212 90 206 Z',0));
+    add(P('tCollar',F?'M124 60 Q150 86 176 60 L177 68 Q150 96 123 68 Z':'M124 60 Q150 70 176 60 L177 68 Q150 78 123 68 Z',0));
+  }else if(top==='puffer'){
+    add(P('tBody','M100 64 Q150 54 200 64 L212 110 L214 196 Q214 212 204 214 L96 214 Q86 212 86 196 L88 110 Z',0));
+    add(P('tAccent','M87 160 L213 160 L214 200 Q150 208 86 200 Z',0));
+    add(P('tTrim','M87 204 Q150 210 213 204 L214 214 Q150 220 86 214 Z',0));
+    ['M89 100 Q150 106 211 100','M87 130 Q150 136 213 130','M87 160 Q150 166 213 160','M86 188 Q150 194 214 188'].forEach(d=>add(ln(d,'seam')));
+    if(F)add(P('tCollar','M122 52 Q150 44 178 52 L181 76 Q150 88 119 76 Z',0),ln('M150 76 L150 214','zip'));
+    else add(P('tCollar','M122 52 Q150 44 178 52 L181 72 Q150 82 119 72 Z',0));
+  }else if(top==='vest'){
+    add(P('tBody','M100 64 Q150 54 200 64 L204 110 L206 196 Q206 212 198 214 L102 214 Q94 212 94 196 L96 110 Z',0));
+    add(P('tSleeve','M100 64 L96 110 L105 112 L108 66 Z',1));
+    add(P('tAccent','M95 160 L205 160 L206 200 Q150 208 94 200 Z',0));
+    add(P('tTrim','M95 204 Q150 210 205 204 L206 214 Q150 220 94 214 Z',0));
+    ['M97 100 Q150 106 203 100','M95 130 Q150 136 205 130'].forEach(d=>add(ln(d,'seam')));
+    if(F)add(P('tCollar','M122 52 Q150 44 178 52 L181 76 Q150 88 119 76 Z',0),ln('M150 76 L150 214','zip'));
+    else add(P('tCollar','M122 52 Q150 44 178 52 L181 72 Q150 82 119 72 Z',0));
+  }else if(top==='jersey'){
+    add(P('tBody','M112 64 L128 62 Q150 88 172 62 L188 64 L196 106 L204 224 L96 224 L104 106 Z',0));
+    add(P('tSleeve','M112 64 L128 62 L127 104 L104 108 L106 90 Z',1));
+    add(P('tAccent','M136 112 L164 112 L164 186 L136 186 Z',0));
+    add(P('tTrim','M96 212 L204 212 L204 224 L96 224 Z',0));
+    add(P('tCollar',F?'M128 62 Q150 90 172 62 L172 68 Q150 98 128 68 Z':'M128 62 Q150 72 172 62 L172 68 Q150 78 128 68 Z',0));
+  }else if(top==='shirt'){
+    add(P('tBody','M104 66 Q150 56 196 66 L202 106 L206 226 L94 226 L98 106 Z',0));
+    if(F){
+      add(P('tAccent','M108 110 L136 110 L136 138 L108 138 Z',1));
+      add(P('tTrim','M146 66 L154 66 L154 226 L146 226 Z',0),ln('M150 90 L150 226','btn'),P('tCollar','M122 58 L149 64 L150 90 L126 84 Z',1));
+    }else add(P('tAccent','M102 68 Q150 60 198 68 L200 92 Q150 100 100 92 Z',0),P('tCollar','M124 58 Q150 52 176 58 L176 70 Q150 76 124 70 Z',0));
+  }else if(top==='denimjk'){
+    add(P('tBody','M104 66 Q150 54 196 66 L202 104 L206 190 Q206 204 198 206 L102 206 Q94 204 94 190 L98 104 Z',0));
+    add(P('tAccent',F?'M108 100 L134 100 L134 130 L108 130 Z':'M100 70 Q150 62 200 70 L202 100 Q150 112 98 100 Z',F?1:0));
+    add(P('tTrim','M95 194 L205 194 L206 206 L94 206 Z',0));
+    if(F)add(ln('M150 92 L150 194','btn'),P('tCollar','M124 58 L149 64 L150 92 L128 84 Z',1),lm('M108 114 L134 114','seam'));
+    else add(P('tCollar','M124 58 Q150 52 176 58 L176 70 Q150 76 124 70 Z',0));
+  }else if(top==='wind'){
+    add(P('tBody','M100 66 Q150 58 200 66 L208 108 L210 200 Q210 212 202 214 L98 214 Q90 212 90 200 L92 108 Z',0));
+    add(P('tAccent','M96 80 Q150 124 204 80 L208 108 Q150 154 92 108 Z',0));
+    add(P('tTrim','M91 202 L209 202 L210 214 L90 214 Z',0));
+    if(F)add(ln('M150 70 L150 214','zip'),ln('M143 70 L141 112','str'),ln('M157 70 L159 112','str'));
+    else add(P('tCollar','M102 62 Q96 104 128 130 Q150 138 172 130 Q204 104 198 62 Q150 78 102 62 Z',0));
+  }else if(top==='cardigan'){
+    add(P('tBody','M100 66 Q150 58 200 66 L208 108 L210 200 Q210 212 202 214 L98 214 Q90 212 90 200 L92 108 Z',0));
+    add(P('tAccent','M91 140 L209 140 L210 160 L90 160 Z',0));
+    add(P('tTrim','M91 202 L209 202 L210 214 L90 214 Z',0));
+    if(F)add(P('tCollar','M122 60 L150 112 L178 60 L182 66 L150 124 L118 66 Z',0),ln('M150 116 L150 214','btn'));
+    else add(P('tCollar','M124 60 Q150 70 176 60 L177 68 Q150 78 123 68 Z',0));
+  }else if(top==='varsity'){
+    add(P('tBody','M104 66 Q150 54 196 66 L202 104 L206 190 Q206 204 198 206 L102 206 Q94 204 94 190 L98 104 Z',0));
+    add(P('tTrim','M95 192 Q150 197 205 192 L206 206 Q150 211 94 206 Z',0));
+    add(P('tAccent',F?'M110 112 L134 112 L134 138 L110 138 Z':'M120 100 L180 100 L180 172 L120 172 Z',0));
+    add(P('tCollar',F?'M126 60 Q150 78 174 60 L174 68 Q150 88 126 68 Z':'M126 60 Q150 70 174 60 L174 68 Q150 78 126 68 Z',0));
+    if(F)add(ln('M150 80 L150 192','btn'));
+  }else if(top==='biker'){
+    add(P('tBody','M104 66 Q150 56 196 66 L204 104 L206 196 L94 196 L96 104 Z',0));
+    add(P('tTrim','M95 184 L205 184 L206 196 L94 196 Z',0));
+    add(P('tAccent','M100 68 L128 64 L130 78 L98 90 Z',1));
+    if(F)add(P('tCollar','M124 58 L149 64 L132 112 L114 86 Z',1),ln('M172 78 L126 190','zip'));
+    else add(P('tCollar','M124 58 Q150 52 176 58 L176 70 Q150 76 124 70 Z',0),ln('M150 76 L150 184','seam'));
+  }else if(top==='coat'){
+    add(P('tBody','M102 64 Q150 56 198 64 L206 104 L214 330 L86 330 L94 104 Z',0));
+    add(P('tTrim','M86 318 L214 318 L214 330 L86 330 Z',0));
+    if(F)add(P('tAccent','M104 210 L134 210 L134 224 L104 224 Z',1),ln('M143 122 L143 316','btn'),ln('M157 122 L157 316','btn'),P('tCollar','M120 56 L149 62 L148 124 L112 92 Z',1));
+    else add(P('tAccent','M102 66 Q150 58 198 66 L200 92 Q150 100 100 92 Z',0),ln('M150 100 L150 316','seam'),P('tCollar','M124 58 Q150 52 176 58 L176 70 Q150 76 124 70 Z',0));
+  }else if(top==='trench'){
+    add(P('tBody','M102 64 Q150 56 198 64 L206 104 L212 322 L88 322 L94 104 Z',0));
+    add(P('tTrim','M88 310 L212 310 L212 322 L88 322 Z',0));
+    add(P('tAccent','M92 190 L208 190 L208 204 L92 204 Z',0),ln('M144 188 L156 188 L156 206 L144 206 Z','seam'));
+    if(F)add(ln('M142 126 L142 186','btn'),ln('M158 126 L158 186','btn'),ln('M142 208 L142 308','btn'),ln('M158 208 L158 308','btn'),P('tCollar','M118 54 L149 60 L148 128 L108 94 Z',1));
+    else add(ln('M150 100 L150 188','seam'),P('tCollar','M124 58 Q150 52 176 58 L176 70 Q150 76 124 70 Z',0));
+  }
+
+  }
+  /* marquages (logos) */
+  (G.marks||[]).forEach(m=>{if(only&&MARKCAT[m.place]!==only)return;const t=drawMark(m,G,A,F);if(t)add(t)});
+
+  /* accessoires par-dessus */
+  if(A.neck==='scarf'){add(P('aNeck',F?'M124 60 Q150 90 176 60 L182 72 Q150 106 118 72 Z':'M124 60 Q150 74 176 60 L182 72 Q150 86 118 72 Z',0));if(F)add(P('aNeck','M150 88 L172 84 L176 156 L152 160 Z',0))}
+  else if(A.neck==='bandana')add(P('aNeck',F?'M126 60 L174 60 L150 98 Z':'M124 60 Q150 74 176 60 L178 70 Q150 84 122 70 Z',0));
+  else if(A.neck==='chain'){add(`<path data-p="aNeck" d="${F?'M132 62 Q150 104 168 62':'M132 62 Q150 70 168 62'}" fill="none" stroke="${C.aNeck}" stroke-width="2"/>`);if(F)add(`<circle data-p="aNeck" cx="150" cy="92" r="4.5" fill="${C.aNeck}" stroke="#0004" stroke-width=".6"/>`)}
+
+  if(A.bag==='cross'){
+    add(`<path data-p="aBag" d="${F?'M192 64 L112 204':'M108 64 L188 204'}" fill="none" stroke="${C.aBag}" stroke-width="5"/>`);
+    const bd='M84 196 Q84 192 90 192 L126 192 Q132 192 132 198 L132 238 Q132 244 126 244 L90 244 Q84 244 84 238 Z',fl='M84 210 L132 210';
+    add(P('aBag',F?bd:mir(bd),0),ln(F?fl:mir(fl),'seam'));
+  }else if(A.bag==='waist'){
+    add(`<path data-p="aBag" d="M92 206 Q150 214 208 206" fill="none" stroke="${C.aBag}" stroke-width="7"/>`);
+    if(F)add(P('aBag','M118 204 Q150 200 182 204 L180 238 Q150 246 120 238 Z',0),ln('M122 218 Q150 222 178 218','seam'));
+  }else if(A.bag==='back'){
+    if(F)add(`<path data-p="aBag" d="M118 64 L112 160 M182 64 L188 160" fill="none" stroke="${C.aBag}" stroke-width="9" stroke-linecap="round"/><path data-p="aBag" d="M114 118 L186 118" fill="none" stroke="${C.aBag}" stroke-width="3"/>`);
+    else add(P('aBag','M100 78 Q150 68 200 78 L204 196 Q150 208 96 196 Z',0),ln('M116 150 Q150 156 184 150 L184 190 Q150 198 116 190 Z','seam'),`<path d="M138 74 Q150 62 162 74" fill="none" stroke="${C.aBag}" stroke-width="3.5"/>`);
+  }else if(A.bag==='tote'){
+    const bd='M70 190 L118 190 L122 252 L66 252 Z',hd='M92 190 Q86 130 108 68';
+    add(`<path data-p="aBag" d="${F?hd:mir(hd)}" fill="none" stroke="${C.aBag}" stroke-width="3.5"/>`);
+    add(P('aBag',F?bd:mir(bd),0));
+  }
+
+  if(A.wrist==='watch')add(`<rect data-p="aWrist" x="52" y="216" width="20" height="8" rx="2" fill="${C.aWrist}" stroke="#0005" stroke-width=".6"/><circle cx="62" cy="220" r="3.4" fill="#f3f1ea" stroke="#0006" stroke-width=".6" pointer-events="none"/>`);
+  else if(A.wrist==='band')add(`<g data-p="aWrist" fill="${C.aWrist}"><rect x="53" y="217" width="18" height="4" rx="2"/><rect x="53" y="223" width="18" height="4" rx="2"/><rect x="229" y="217" width="18" height="4" rx="2"/><rect x="229" y="223" width="18" height="4" rx="2"/></g>`);
+
+  if(A.neck==='tie'&&F)add(P('aNeck','M144 64 L156 64 L158 78 L142 78 Z',0),P('aNeck','M142 78 L158 78 L166 142 L150 160 L134 142 Z',0));
+  if(A.bag==='duffle'){
+    const bd='M60 198 Q60 192 68 192 L128 192 Q136 192 136 198 L136 240 Q136 246 128 246 L68 246 Q60 246 60 240 Z',hd='M76 192 Q98 174 120 192',zp='M60 214 L136 214',sd=F?'M190 64 L100 204':'M110 64 L200 204';
+    add(`<path data-p="aBag" d="${sd}" fill="none" stroke="${C.aBag}" stroke-width="5"/><path data-p="aBag" d="${F?hd:mir(hd)}" fill="none" stroke="${C.aBag}" stroke-width="3"/>`);
+    add(P('aBag',F?bd:mir(bd),0),ln(F?zp:mir(zp),'seam'));
+  }
+  if(A.wrist==='rings')add(`<g data-p="aWrist" fill="none" stroke="${C.aWrist}" stroke-width="1.6"><circle cx="58" cy="242" r="2.4"/><circle cx="66" cy="244" r="2.4"/><circle cx="234" cy="242" r="2.4"/><circle cx="242" cy="244" r="2.4"/></g>`);
+  const vol=`<linearGradient id="vol${uid}" x1="0" x2="1" y1="0" y2="0"><stop offset="0" stop-color="#000" stop-opacity=".3"/><stop offset=".28" stop-color="#000" stop-opacity="0"/><stop offset=".72" stop-color="#000" stop-opacity="0"/><stop offset="1" stop-color="#000" stop-opacity=".3"/></linearGradient>`;
+  let out='',hi='';
+  L.forEach(x=>{
+    if(typeof x==='string'){out+=x;return}
+    if(x.t==='p'){
+      out+=`<path data-p="${x.id}" d="${x.d}" fill="${C[x.id]}" stroke="${x.id[0]==='b'?C.stitchB:C.stitch}" stroke-width="1.1" stroke-linejoin="round"/><path d="${x.d}" fill="url(#vol${uid})" pointer-events="none"/>${x.id[0]==='a'?'':`<path d="${x.d}" fill="url(#ov${x.id[0]==='b'?'b':''}${uid})" pointer-events="none"/>`}`;
+      if(sel&&x.id===sel)hi+=`<path d="${x.d}" fill="none" stroke="#0a84ff" stroke-width="2.2" stroke-dasharray="5 3" pointer-events="none"/>`;
+    }else if(x.k==='zip')out+=`<path d="${x.d}" fill="none" stroke="#d9dbe0" stroke-width="2.6" stroke-dasharray="1.3 1.6" pointer-events="none"/><path d="${x.d}" fill="none" stroke="#6b6f76" stroke-width=".6" pointer-events="none"/>`;
+    else if(x.k==='btn')out+=`<path d="${x.d}" fill="none" stroke="#ece9e0" stroke-width="3.2" stroke-linecap="round" stroke-dasharray="0.1 9" pointer-events="none"/>`;
+    else if(x.k==='str')out+=`<path d="${x.d}" fill="none" stroke="#efece4" stroke-width="1.7" stroke-linecap="round" pointer-events="none"/>`;
+    else out+=`<path d="${x.d}" fill="none" stroke="${x.b?C.stitchB:C.stitch}" stroke-width=".9" stroke-dasharray="3 2" pointer-events="none"/>`;
+  });
+  const vb=only==='top'?ZOOM.top:only==='bottom'?ZOOM.bottom:only==='acc'?(ZOOM.acc[G.accGroup||'head']||'0 -14 300 514'):'0 -14 300 514';
+  return `<svg viewBox="${vb}" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Aperçu"><defs>${vol}${ovDef(G.fabric,'ov'+uid)}${ovDef(G.fabricB||G.fabric,'ovb'+uid)}</defs>${out}${hi}</svg>`;
+}
+
+/* ---------- onglet Atelier ---------- */
+function zonesOf(G){
+  if(G.mode==='piece'){
+    if(G.cat==='top')return Object.assign({},TOPS[G.top].zones,{stitch:'Surpiqûres'});
+    if(G.cat==='bottom')return Object.assign({},BOTTOMS[G.bottom].zones,{stitchB:'Surpiqûres'});
+    const g=G.accGroup||'head';return {[ACC[g].z]:AZL[ACC[g].z]};
+  }
+  const A=Object.assign({},ACC0,G.acc||{});
+  const z=Object.assign({},TOPS[G.top].zones,BOTTOMS[G.bottom].zones,{stitch:'Surpiqûres',stitchB:'Surpiqûres du bas'});
+  Object.keys(ACC).forEach(g=>{if(g==='shoe'||A[g]!=='none')z[ACC[g].z]=AZL[ACC[g].z]});
+  return z;
+}
+function fixC(c){c.stitchB=c.stitchB||c.stitch;return c}
+function pieceG(p){return {mode:'piece',cat:p.cat,accGroup:p.group,top:p.top,bottom:p.bottom,fabric:p.fabric,fabricB:p.fabricB||p.fabric,c:p.c,acc:p.cat==='acc'?{[p.group]:p.opt}:{},marks:p.marks,view:'front'}}
+function pieceThumb(p,uid){return build(pieceG(p),uid,null)}
+function makePiece(){
+  const cat=S.cat,id=Date.now(),mk=c=>S.marks.filter(m=>MARKCAT[m.place]===c).map(m=>Object.assign({},m));
+  const cnt=S.looks.filter(l=>l.kind==='piece'&&l.cat===cat).length+1;
+  if(cat==='top'){const c={};Object.keys(TOPS[S.top].zones).concat('stitch').forEach(k=>c[k]=S.c[k]);return {id,kind:'piece',cat,name:TOPS[S.top].label+' '+cnt,top:S.top,fabric:S.fabric,c,marks:mk('top')}}
+  if(cat==='bottom'){const c={};Object.keys(BOTTOMS[S.bottom].zones).concat('stitchB').forEach(k=>c[k]=S.c[k]);return {id,kind:'piece',cat,name:BOTTOMS[S.bottom].label+' '+cnt,bottom:S.bottom,fabric:S.fabricB,fabricB:S.fabricB,c,marks:mk('bottom')}}
+  const g=S.accGroup,z=ACC[g].z;return {id,kind:'piece',cat:'acc',name:ACC[g].opts[S.acc[g]]+' '+cnt,group:g,opt:S.acc[g],c:{[z]:S.c[z]},marks:g==='head'?mk('acc'):[]};
+}
+function applyPiece(p){
+  const keep=c=>S.marks.filter(m=>MARKCAT[m.place]!==c);
+  if(p.cat==='top'){S.top=p.top;S.fabric=p.fabric;Object.assign(S.c,p.c);S.marks=keep('top').concat((p.marks||[]).map(m=>Object.assign({},DEFMARK,m)))}
+  else if(p.cat==='bottom'){S.bottom=p.bottom;S.fabricB=p.fabricB||p.fabric;Object.assign(S.c,p.c);S.marks=keep('bottom').concat((p.marks||[]).map(m=>Object.assign({},DEFMARK,m)))}
+  else{S.acc[p.group]=p.opt;Object.assign(S.c,p.c);if(p.group==='head')S.marks=keep('acc').concat((p.marks||[]).map(m=>Object.assign({},DEFMARK,m)))}
+  S.mi=0;
+}
+function randomPiece(){
+  const pick=a=>a[Math.floor(Math.random()*a.length)];
+  const A=pick(PAL);let B=pick(PAL);while(B===A)B=pick(PAL);let Cc=pick(PAL);while(Cc===A||Cc===B)Cc=pick(PAL);const h=()=>Math.random()<.5;
+  if(S.cat==='top'){S.top=pick(Object.keys(TOPS));S.fabric=pick(Object.keys(FABRICS));Object.assign(S.c,{tBody:A,tSleeve:h()?A:B,tAccent:B,tCollar:A,tTrim:h()?A:Cc,stitch:pick(['#f3f1ea','#111214',Cc])})}
+  else if(S.cat==='bottom'){S.bottom=pick(Object.keys(BOTTOMS));S.fabricB=pick(Object.keys(FABRICS));Object.assign(S.c,{bLegs:A,bStripe:B,bAccent:h()?B:A,bTrim:Cc,stitchB:pick(['#f3f1ea','#111214',Cc])})}
+  else{const g=S.accGroup,o=Object.keys(ACC[g].opts).filter(k=>k!=='none');S.acc[g]=pick(o);S.c[ACC[g].z]=pick(PAL)}
+}
+function accRows(){return Object.keys(ACC).map(g=>`<p class="small mute" style="margin:12px 0 6px">${ACC[g].label}${ACC[g].hint?' ('+ACC[g].hint+')':''}</p><div class="chips hs">${Object.keys(ACC[g].opts).map(k=>`<button class="chip" data-act="acc" data-g="${g}" data-k="${k}" aria-pressed="${S.acc[g]===k}">${ACC[g].opts[k]}</button>`).join('')}</div>`).join('')}
+function chipRow(obj,cur,act){return `<div class="chips hs">`+Object.keys(obj).map(k=>`<button class="chip" data-act="${act}" data-k="${k}" aria-pressed="${cur===k}">${esc(typeof obj[k]==='string'?obj[k]:obj[k].label)}</button>`).join('')+`</div>`}
+function piecesOf(cat){return S.looks.filter(l=>l.kind==='piece'&&(!cat||l.cat===cat))}
+function pieceScroller(list,act,lab){return `<div class="scroller pcs">${list.map(p=>`<button class="preset" data-act="${act}" data-k="${p.id}"><div class="th">${pieceThumb(p,'pc'+p.id+act)}</div><span>${esc(p.name)}${lab?`<br><small class="mute">${CATS[p.cat]}</small>`:''}</span></button>`).join('')}</div>`}
+function studio(){
+  const Z=zonesOf(S),piece=S.mode==='piece';
+  if(!Z[S.sel])S.sel=Object.keys(Z)[0];
+  const modebar=`<div class="modebar"><div class="seg2" role="group" aria-label="Mode de travail"><button data-act="mode" data-k="piece" aria-pressed="${piece}">Pièce par pièce</button><button data-act="mode" data-k="outfit" aria-pressed="${!piece}">Tenue complète</button></div>${piece?`<div class="seg2" role="group" aria-label="Catégorie">${Object.keys(CATS).map(k=>`<button data-act="cat" data-k="${k}" aria-pressed="${S.cat===k}">${CATS[k]}</button>`).join('')}</div>`:''}</div>`;
+  const stage=`<section class="stage" id="stage">
+    <div class="seg float-l" role="group" aria-label="Vue">
+      <button data-act="view" data-k="front" aria-pressed="${S.view==='front'}">Face</button>
+      <button data-act="view" data-k="back" aria-pressed="${S.view==='back'}">Dos</button>
+    </div>
+    <button class="roll" data-act="random">${piece?'Pièce aléatoire':'Look aléatoire'}</button>
+    <div id="svgHost">${build(S,'main',S.sel)}</div>
+  </section>`;
+  const colors=`<h2>Zone à colorer</h2>
+    <div class="chips" id="zoneChips">${Object.keys(Z).map(k=>`<button class="chip" data-act="zone" data-k="${k}" aria-pressed="${S.sel===k}"><span class="dot" style="background:${S.c[k]}"></span>${esc(Z[k])}</button>`).join('')}</div>
+    <div class="pal" id="pal">${PAL.map(c=>`<button class="sw" data-act="col" data-k="${c}" style="background:${c}" aria-label="${colorName(c)}" aria-pressed="${S.c[S.sel].toLowerCase()===c}"></button>`).join('')}<input type="color" class="colorin" data-in="custom" value="${S.c[S.sel]}" aria-label="Couleur personnalisée"></div>`;
+  if(!piece){
+    return modebar+stage+`<div class="pad">
+    <button class="primary" data-act="save">Enregistrer cette tenue</button>
+    <p class="small mute" style="margin:10px 0 0;text-align:center">Touche une zone du vêtement pour la sélectionner et changer sa couleur.</p>
+    ${colors}
+    <h2>Haut</h2>${chipRow(TOPS,S.top,'top')}
+    <h2>Bas</h2>${chipRow(BOTTOMS,S.bottom,'bottom')}
+    <h2>Matière du haut</h2>${chipRow(FABRICS,S.fabric,'fabric')}
+    <h2>Matière du bas</h2>${chipRow(FABRICS,S.fabricB,'fabricB')}
+    <h2>Accessoires</h2>${accRows()}
+    <h2>Assembler avec mes pièces</h2>
+    ${piecesOf().length?`<p class="small mute" style="margin:0 0 8px">Touche une pièce enregistrée pour l’ajouter à la tenue.</p>${pieceScroller(piecesOf(),'usePiece',true)}`:`<p class="small mute" style="margin:0">Aucune pièce enregistrée. Passe en « Pièce par pièce » pour en créer, puis reviens les assembler ici.</p>`}
+    <h2>Looks de départ</h2>
+    <div class="scroller">${PRESETS.map((p,i)=>`<button class="preset" data-act="preset" data-k="${i}"><div class="th">${build({top:p.top,bottom:p.bottom,fabric:p.fabric,view:'front',c:p.c,acc:p.acc},'pr'+i,null)}</div><span>${esc(p.n)}</span></button>`).join('')}</div>
+  </div>`;
+  }
+  /* mode pièce */
+  const cat=S.cat,g=S.accGroup,editing=S.editId&&S.looks.find(l=>l.id===S.editId&&l.kind==='piece'&&l.cat===cat);
+  let sel='';
+  if(cat==='top')sel=`<h2>Type de haut</h2>${chipRow(TOPS,S.top,'top')}<h2>Matière</h2>${chipRow(FABRICS,S.fabric,'fabric')}`;
+  else if(cat==='bottom')sel=`<h2>Type de bas</h2>${chipRow(BOTTOMS,S.bottom,'bottom')}<h2>Matière</h2>${chipRow(FABRICS,S.fabricB,'fabricB')}`;
+  else sel=`<h2>Accessoire</h2><div class="chips hs">${Object.keys(ACC).map(x=>`<button class="chip" data-act="accGroup" data-k="${x}" aria-pressed="${g===x}">${ACC[x].label}</button>`).join('')}</div>
+    <p class="small mute" style="margin:12px 0 6px">${ACC[g].label}${ACC[g].hint?' ('+ACC[g].hint+')':''}</p>
+    <div class="chips hs">${Object.keys(ACC[g].opts).map(k=>`<button class="chip" data-act="acc" data-g="${g}" data-k="${k}" aria-pressed="${S.acc[g]===k}">${ACC[g].opts[k]}</button>`).join('')}</div>`;
+  const canLogo=cat==='top'||cat==='bottom'||(cat==='acc'&&g==='head');
+  const mine=piecesOf(cat);
+  return modebar+stage+`<div class="pad">
+    <button class="primary" data-act="savePiece">${editing?'Mettre à jour cette pièce':'Enregistrer cette pièce'}</button>
+    ${editing?`<button class="ghost" data-act="savePieceNew" style="width:100%;margin-top:8px">Enregistrer comme nouvelle pièce</button>`:''}
+    <p class="small mute" style="margin:10px 0 0;text-align:center">${cat==='acc'&&S.acc[g]==='none'?'Choisis un accessoire pour le voir.':'Touche une zone de la pièce pour la sélectionner et changer sa couleur.'}</p>
+    ${S.acc&&cat==='acc'&&S.acc[g]==='none'?'':colors}
+    ${sel}
+    ${canLogo?`<button class="ghost" data-act="tab" data-t="mark" style="width:100%;margin-top:20px">Ajouter un logo sur cette pièce</button>`:''}
+    <h2>Mes pièces : ${CATS[cat].toLowerCase()}${cat==='acc'?'s':'s'}</h2>
+    ${mine.length?`<p class="small mute" style="margin:0 0 8px">Touche une pièce pour la modifier.</p>${pieceScroller(mine,'openPiece',false)}`:`<p class="small mute" style="margin:0">Rien d’enregistré dans cette catégorie pour l’instant.</p>`}
+    <p class="small mute" style="margin-top:22px">Quand tu as plusieurs pièces, passe en « Tenue complète » pour les assembler.</p>
+  </div>`;
+}
+function refreshStage(){
+  const h=$('#svgHost');if(h)h.innerHTML=build(S,'main',S.tab==='studio'?S.sel:null);
+  const Z=zonesOf(S);
+  document.querySelectorAll('#zoneChips .chip').forEach(b=>{const d=b.querySelector('.dot');if(d)d.style.background=S.c[b.dataset.k]});
+  document.querySelectorAll('#pal .sw').forEach(b=>b.setAttribute('aria-pressed',String(S.c[S.sel].toLowerCase()===b.dataset.k)));
+}
+function randomLook(){
+  const pick=a=>a[Math.floor(Math.random()*a.length)];
+  S.top=pick(Object.keys(TOPS));S.bottom=pick(Object.keys(BOTTOMS));S.fabric=pick(Object.keys(FABRICS));
+  const A=pick(PAL);let B=pick(PAL);while(B===A)B=pick(PAL);let Cc=pick(PAL);while(Cc===A||Cc===B)Cc=pick(PAL);
+  const h=()=>Math.random()<.5;
+  S.c={tBody:A,tSleeve:h()?A:B,tAccent:B,tCollar:A,tTrim:h()?A:Cc,bLegs:h()?A:'#111214',bStripe:B,bAccent:h()?B:A,bTrim:Cc,stitch:pick(['#f3f1ea','#111214',Cc]),aHead:pick([A,B,'#111214']),aGlass:'#17181b',aEar:pick(['#e7b93c','#b9bcc2']),aNeck:pick([B,Cc]),aBag:pick(['#111214',A,B]),aWrist:pick(['#b9bcc2','#111214',Cc]),aBelt:pick(['#111214',A,B]),aSock:pick(['#f3f1ea','#111214',B]),aShoe:pick(['#f4f4f2','#111214',B])};
+  S.acc={};Object.keys(ACC).forEach(g=>{S.acc[g]=pick(Object.keys(ACC[g].opts))});
+}
+
+/* ---------- onglet Marque ---------- */
+const NA=['Vide','Nuit','Onyx','Brume','Cobalt','Orbite','Fer','Écho','Néon','Zénith','Vanta','Rift','Atlas','Mono','Static','Chrome','Velours','Sismik','Halo','Cendre'];
+const NB=['Studio','Atelier','Club','Dept.','Lab','Supply','Division','Garments','Works','Collective'];
+let nameIdeas=[];
+function genNames(){
+  const pick=a=>a[Math.floor(Math.random()*a.length)];const out=new Set();
+  while(out.size<8){
+    const r=Math.random();
+    if(r<.45)out.add(pick(NA)+' '+pick(NB));
+    else if(r<.8){const a=pick(NA),b=pick(NA);if(a!==b)out.add(a+b.toLowerCase())}
+    else out.add(pick(NA)+' Nº'+(1+Math.floor(Math.random()*98)));
+  }
+  nameIdeas=[...out];
+}
+function designColors(){const s=new Set(['#111214','#f3f1ea']);Object.values(S.c).forEach(c=>s.add(c));return [...s]}
+function logoText(n){const k=LOGOS[S.brand.logo];n=(n||'Ma marque').trim()||'Ma marque';return k.up?n.toUpperCase():n.toLowerCase()}
+function logoSVG(kind){
+  const B=S.brand,k=LOGOS[B.logo],t=logoText(B.name);
+  const st=`font-family:${k.ff};font-weight:${k.w};letter-spacing:${k.ls};font-stretch:${k.st}`;
+  if(kind==='main'){
+    const fs=Math.max(16,Math.min(52,290/(Math.max(t.length,1)*0.68)));
+    return `<svg viewBox="0 0 320 120" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Logo"><rect width="320" height="120" fill="${B.bg}"/><text x="160" y="${60+fs*0.34}" text-anchor="middle" fill="${B.fg}" style="${st};font-size:${fs}px">${esc(t)}</text></svg>`;
+  }
+  if(kind==='label'){
+    const fs=Math.max(10,Math.min(22,170/(Math.max(t.length,1)*0.7)));
+    return `<svg viewBox="0 0 220 70" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Étiquette"><rect width="220" height="70" fill="${B.bg}"/><rect x="5" y="5" width="210" height="60" fill="none" stroke="${B.fg}" stroke-opacity=".55" stroke-dasharray="3 2"/><text x="110" y="${34+fs*0.3}" text-anchor="middle" fill="${B.fg}" style="${st};font-size:${fs}px">${esc(t)}</text><text x="110" y="56" text-anchor="middle" fill="${B.fg}" fill-opacity=".75" style="font-family:'Archivo',sans-serif;font-size:7.5px;letter-spacing:.14em">${esc((B.tag||'Collection 01').toUpperCase())}</text></svg>`;
+  }
+  const w=(B.name||'M').trim().split(/\s+/);const ini=(w.length>1?w[0][0]+w[1][0]:(w[0]||'M').slice(0,2)).toUpperCase();
+  return `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Monogramme"><circle cx="50" cy="50" r="48" fill="${B.bg}"/><text x="50" y="62" text-anchor="middle" fill="${B.fg}" style="${st};font-size:34px">${esc(ini)}</text></svg>`;
+}
+function manifesto(){
+  const B=S.brand,v=B.vibes.length?B.vibes.join(' / ').toLowerCase():'streetwear';
+  return `${B.name} est une marque ${v}. Des coupes larges, des empiècements contrastés et des matières choisies pour durer. Chaque drop reste petit, chaque pièce est pensée dans le détail${B.tag?'. '+B.tag:''}.`;
+}
+function brand(){
+  const B=S.brand,dc=designColors();
+  const sw=(act,cur)=>dc.map(c=>`<button class="sw" data-act="${act}" data-k="${c}" style="background:${c}" aria-label="${colorName(c)}" aria-pressed="${cur.toLowerCase()===c.toLowerCase()}"></button>`).join('');
+  return `<div class="pad">
+    <h2>Identité</h2>
+    <div class="field"><label for="f-name">Nom de la marque</label><input id="f-name" data-in="name" value="${esc(B.name)}" maxlength="28" autocomplete="off"></div>
+    <div class="field"><label for="f-tag">Slogan ou ligne de collection</label><input id="f-tag" data-in="tag" value="${esc(B.tag)}" maxlength="60" placeholder="Ex. Drop 01" autocomplete="off"></div>
+    <button class="ghost" data-act="names">Proposer des noms</button>
+    <div class="chips" id="nameIdeas" style="margin-top:10px">${nameIdeas.map(n=>`<button class="chip" data-act="useName" data-k="${esc(n)}">${esc(n)}</button>`).join('')}</div>
+    <h2>Univers</h2>
+    <div class="chips">${VIBES.map(v=>`<button class="chip" data-act="vibe" data-k="${v}" aria-pressed="${B.vibes.includes(v)}">${v}</button>`).join('')}</div>
+    <div class="field" style="margin-top:14px"><label for="f-man">Présentation de la marque</label><textarea id="f-man" data-in="manifesto" placeholder="Décris ta marque en quelques phrases">${esc(B.manifesto)}</textarea></div>
+    <button class="ghost" data-act="genMan">Écrire une première version</button>
+    <h2>Logo</h2>
+    <div class="chips">${Object.keys(LOGOS).map(k=>`<button class="chip" data-act="logo" data-k="${k}" aria-pressed="${B.logo===k}">${LOGOS[k].l}</button>`).join('')}</div>
+    <p class="small mute" style="margin:12px 0 4px">Fond</p><div class="pal" style="margin-top:0" id="bgPal">${sw('logoBg',B.bg)}</div>
+    <p class="small mute" style="margin:12px 0 4px">Lettres</p><div class="pal" style="margin-top:0" id="fgPal">${sw('logoFg',B.fg)}</div>
+    <div class="logos">
+      <div id="logoMain">${logoSVG('main')}</div>
+      <div class="mini"><div id="logoLabel">${logoSVG('label')}</div><div id="logoMono">${logoSVG('mono')}</div></div>
+    </div>
+    <p class="small mute">Les couleurs proposées viennent de ton look actuel : change le look dans l’Atelier, elles suivent.</p>
+  </div>`;
+}
+function refreshLogo(){
+  $('#logoMain').innerHTML=logoSVG('main');$('#logoLabel').innerHTML=logoSVG('label');$('#logoMono').innerHTML=logoSVG('mono');
+}
+function setHeader(){$('#hdrName').textContent=S.brand.name||'Ma marque'}
+
+/* ---------- onglet Collection ---------- */
+let openSheet=null,pendingDel=null;
+function sheetText(L){
+  if(L.kind==='piece'){
+    let t=`Fiche technique (pièce) : ${L.name}\nMarque : ${S.brand.name}\n\n`;
+    if(L.cat==='top'){t+=`Haut : ${TOPS[L.top].label}\nMatière : ${FABRICS[L.fabric]}\n\nCouleurs\n`;const Z=TOPS[L.top].zones;Object.keys(Z).forEach(k=>{t+=`- ${Z[k]} : ${colorName(L.c[k])} (${L.c[k]})\n`});t+=`- Surpiqûres et liserés : ${colorName(L.c.stitch)} (${L.c.stitch})\n`}
+    else if(L.cat==='bottom'){t+=`Bas : ${BOTTOMS[L.bottom].label}\nMatière : ${FABRICS[L.fabricB||L.fabric]}\n\nCouleurs\n`;const Z=BOTTOMS[L.bottom].zones;Object.keys(Z).forEach(k=>{t+=`- ${Z[k]} : ${colorName(L.c[k])} (${L.c[k]})\n`});t+=`- Surpiqûres et liserés : ${colorName(L.c.stitchB)} (${L.c.stitchB})\n`}
+    else{const z=ACC[L.group].z;t+=`Accessoire : ${ACC[L.group].label}, ${ACC[L.group].opts[L.opt]}\nCouleur : ${colorName(L.c[z])} (${L.c[z]})\n`}
+    if(L.marks&&L.marks.length){t+='\nMarquage (logos)\n';L.marks.forEach((m,i)=>{t+='- '+markDesc(Object.assign({},DEFMARK,m),i)+'\n'})}
+    return t;
+  }
+  const T=TOPS[L.top],B=BOTTOMS[L.bottom],Z=Object.assign({},T.zones,B.zones);
+  let s=`Fiche technique : ${L.name}\nMarque : ${S.brand.name}\n\nHaut : ${T.label}\nBas : ${B.label}\nMatière : ${FABRICS[L.fabric]}\n\nCouleurs\n`;
+  Object.keys(Z).forEach(k=>{s+=`- ${Z[k]} : ${colorName(L.c[k])} (${L.c[k]})\n`});
+  s+=`- Surpiqûres et liserés : ${colorName(L.c.stitch)} (${L.c.stitch})\n`;
+  const ac=Object.assign({},ACC0,L.acc||{});
+  Object.keys(ACC).forEach(g=>{if(ac[g]!=='none'){const z=ACC[g].z,col=(L.c[z]||ACCC[z]);s+=`- ${ACC[g].label} : ${ACC[g].opts[ac[g]]}, ${colorName(col)} (${col})\n`}});
+  if(L.marks&&L.marks.length){s+='\nMarquage (logos)\n';L.marks.forEach((m,i)=>{s+='- '+markDesc(Object.assign({},DEFMARK,m),i)+'\n'})}
+  return s;
+}
+function lookCard(l){
+  const isP=l.kind==='piece';
+  const th=isP?pieceThumb(l,'c'+l.id):build({top:l.top,bottom:l.bottom,fabric:l.fabric,fabricB:l.fabricB,view:'front',c:l.c,acc:l.acc,marks:l.marks},'c'+l.id,null);
+  return `<div class="look"><div class="th">${th}</div><div class="in"><input data-in="lname" data-id="${l.id}" value="${esc(l.name)}" aria-label="Nom" maxlength="40"><div class="acts"><button data-act="${isP?'openPiece':'openLook'}" data-k="${l.id}">Ouvrir</button>${isP?`<button data-act="usePiece" data-k="${l.id}">Dans la tenue</button>`:''}<button data-act="sheet" data-k="${l.id}">Fiche</button><button data-act="del" data-k="${l.id}">${pendingDel===l.id?'Confirmer':'Retirer'}</button></div></div></div>`;
+}
+function collection(){
+  if(!S.looks.length)return `<div class="pad"><h2>Ma collection</h2><p class="mute">Rien pour l’instant. Crée une pièce dans l’Atelier (mode « Pièce par pièce »), enregistre-la ici, puis assemble tes pièces en tenue.</p><button class="primary" data-act="tab" data-t="studio">Aller à l’Atelier</button></div>`;
+  const sh=S.looks.find(l=>l.id===openSheet);
+  const pcs=piecesOf(),outs=S.looks.filter(l=>l.kind!=='piece');
+  const sec=(t,list)=>list.length?`<h2>${t} (${list.length})</h2><div class="grid">${list.map(lookCard).join('')}</div>`:'';
+  return `<div class="pad">
+  ${sec('Hauts',pcs.filter(p=>p.cat==='top'))}${sec('Bas',pcs.filter(p=>p.cat==='bottom'))}${sec('Accessoires',pcs.filter(p=>p.cat==='acc'))}${sec('Tenues',outs)}
+  ${sh?`<div class="sheet"><pre>${esc(sheetText(sh))}</pre><button class="ghost" data-act="copy" data-k="${sh.id}">Copier la fiche</button><p class="small mute" style="margin:10px 0 0">À envoyer à un atelier ou un patronnier, ou à garder pour refaire la pièce en 3D.</p></div>`:''}
+  </div>`;
+}
+
+/* ---------- onglet Business ---------- */
+function biz(){
+  const b=S.biz,f=(k,l,st)=>`<div class="field"><label for="b-${k}">${l}</label><input id="b-${k}" data-in="biz.${k}" type="number" inputmode="decimal" step="${st||'any'}" min="0" value="${b[k]}"></div>`;
+  return `<div class="pad">
+    <h2>Rentabilité d’une pièce</h2>
+    <p class="small mute" style="margin-top:0">Les valeurs de départ sont des exemples : remplace-les par les devis reçus.</p>
+    <div class="numgrid">${f('cost','Coût de production (€/pièce)')}${f('price','Prix de vente (€)')}${f('qty','Quantité produite','1')}${f('fixed','Frais fixes (€)')}${f('ship','Emballage et envoi (€/pièce)')}${f('fee','Frais de paiement (%)')}</div>
+    <div class="kpis" id="kpis"></div>
+    <p class="small mute" id="mult"></p>
+    <div class="row2" style="margin-top:8px"><button class="ghost" data-act="mult" data-k="2.5">Prix ×2,5</button><button class="ghost" data-act="mult" data-k="3">Prix ×3</button></div>
+    <h2>Check-list de lancement</h2>
+    <ul class="checks">${CHECKS.map((c,i)=>`<li><label><input type="checkbox" data-in="chk" data-id="${i}" ${S.checks[i]?'checked':''}><span class="${S.checks[i]?'done':''}">${esc(c[0])}<small>${esc(c[1])}</small></span></label></li>`).join('')}</ul>
+  </div>`;
+}
+function bizCalc(){
+  const b=S.biz,n=v=>Number(v)||0;
+  const net=n(b.price)*(1-n(b.fee)/100);
+  const um=net-n(b.cost)-n(b.ship);
+  const pct=n(b.price)>0?um/n(b.price)*100:0;
+  const be=um>0?Math.ceil(n(b.fixed)/um):Infinity;
+  const inv=n(b.cost)*n(b.qty)+n(b.fixed);
+  const all=um*n(b.qty)-n(b.fixed);
+  const k=(v,l,cls)=>`<div class="kpi ${cls||''}"><b>${v}</b><span>${l}</span></div>`;
+  $('#kpis').innerHTML=k(eur(um),'Marge par pièce',um>0?'pos':'neg')+k(pct.toFixed(0)+' %','Marge sur le prix de vente',um>0?'pos':'neg')+k(isFinite(be)?be+' pièces':'Jamais','Pour rentrer dans tes frais',isFinite(be)?'':'neg')+k(eur(inv),'Investissement de départ')+k(eur(all),'Bénéfice si tout est vendu',all>=0?'pos':'neg');
+  $('#mult').textContent=`Repère courant : prix de vente entre ×2,5 et ×3 le coût de production, soit ${eur(n(b.cost)*2.5)} à ${eur(n(b.cost)*3)}.`;
+}
+
+/* ---------- onglet Marquage ---------- */
+function cmOf(m){const pl=PL[m.place];return pl?Math.round(pl.cm*(Number(m.size)||1)):0}
+function markDesc(m,i){
+  const K={text:'texte',mono:'monogramme',shape:'symbole'}[m.kind]||'texte';
+  const c=m.kind==='shape'?(SHAPES[m.shape]||SHAPES.star).l:(m.text||S.brand.name);
+  return `Logo ${i+1} : ${K} (${c}), ${TECH[m.tech]}, ${PL[m.place].l}, environ ${cmOf(m)} cm, ${colorName(m.color)} (${m.color})`+(m.tech==='patch'?`, fond ${colorName(m.bg)} (${m.bg})`:'');
+}
+function newMark(extra){
+  const dark=lum(S.c.tBody)>.55;
+  const m=Object.assign({},DEFMARK,{color:dark?'#111214':'#f3f1ea',bg:dark?'#f3f1ea':'#111214'},extra||{});
+  return m;
+}
+function marquage(){
+  const m=S.marks[S.mi];
+  const pal=[...new Set([...designColors(),...PAL])];
+  const sw=(act,cur)=>pal.map(c=>`<button class="sw" data-act="${act}" data-k="${c}" style="background:${c}" aria-label="${colorName(c)}" aria-pressed="${String(cur).toLowerCase()===c.toLowerCase()}"></button>`).join('');
+  const stage=`<section class="stage" id="stage"><div class="seg float-l" role="group" aria-label="Vue"><button data-act="view" data-k="front" aria-pressed="${S.view==='front'}">Face</button><button data-act="view" data-k="back" aria-pressed="${S.view==='back'}">Dos</button></div><div id="svgHost">${build(S,'main',null)}</div></section>`;
+  const list=`<div class="chips hs">${S.marks.map((x,i)=>`<button class="chip" data-act="mksel" data-k="${i}" aria-pressed="${i===S.mi}">Logo ${i+1}</button>`).join('')}${S.marks.length<8?`<button class="chip" data-act="mkadd">+ Ajouter un logo</button>`:''}</div>`;
+  let ed='';
+  if(m){
+    const places=v=>Object.keys(PL).filter(k=>PL[k].v===v&&(S.mode!=='piece'||MARKCAT[k]===S.cat)).map(k=>`<button class="chip" data-act="mkplace" data-k="${k}" aria-pressed="${m.place===k}">${PL[k].l}</button>`).join('');
+    let note='';
+    if((m.place==='sleeve-l'||m.place==='sleeve-r')&&(S.top==='vest'||S.top==='jersey'))note='Cette pièce n’a pas de manches : choisis un autre emplacement.';
+    if(m.place==='cap'&&S.acc.head==='none')note='Ajoute un couvre-chef dans l’Atelier pour voir ce logo.';
+    const kinds={text:'Texte',mono:'Monogramme',shape:'Symbole'};
+    ed=`
+    <h2>Contenu</h2>
+    <div class="chips">${Object.keys(kinds).map(k=>`<button class="chip" data-act="mkkind" data-k="${k}" aria-pressed="${m.kind===k}">${kinds[k]}</button>`).join('')}</div>
+    ${m.kind==='shape'?`<div class="shapes" style="margin-top:12px">${Object.keys(SHAPES).map(k=>{const sh=SHAPES[k];return `<button class="shp" data-act="mkshape" data-k="${k}" aria-pressed="${m.shape===k}" aria-label="${sh.l}"><svg viewBox="-13 -13 26 26" width="26" height="26" style="color:var(--ink)">${sh.d?`<path d="${sh.d}" fill="currentColor"/>`:sh.o}</svg></button>`}).join('')}</div>`
+    :`<div class="field" style="margin-top:12px"><label for="mk-text">${m.kind==='mono'?'Lettres (1 à 3, vide = initiales de la marque)':'Texte (vide = nom de la marque)'}</label><input id="mk-text" data-in="mk.text" value="${esc(m.text)}" placeholder="${esc(S.brand.name)}" maxlength="24" autocomplete="off"></div>
+    <p class="small mute" style="margin:0 0 6px">Style des lettres</p>
+    <div class="chips hs"><button class="chip" data-act="mkfont" data-k="" aria-pressed="${!m.font}">Comme la marque</button>${Object.keys(LOGOS).map(k=>`<button class="chip" data-act="mkfont" data-k="${k}" aria-pressed="${m.font===k}">${LOGOS[k].l}</button>`).join('')}</div>`}
+    <h2>Emplacement</h2>
+    <p class="small mute" style="margin:0 0 6px">Face</p><div class="chips hs">${places('f')}</div>
+    <p class="small mute" style="margin:12px 0 6px">Dos</p><div class="chips hs">${places('b')}</div>
+    ${note?`<p class="note">${note}</p>`:''}
+    <h2>Technique</h2>
+    <div class="chips hs">${Object.keys(TECH).map(k=>`<button class="chip" data-act="mktech" data-k="${k}" aria-pressed="${m.tech===k}">${TECH[k]}</button>`).join('')}</div>
+    <h2>Couleur</h2>
+    <div class="pal" style="margin-top:0">${sw('mkcol',m.color)}<input type="color" class="colorin" data-in="mk.color" value="${m.color}" aria-label="Couleur personnalisée du logo"></div>
+    ${m.tech==='patch'?`<p class="small mute" style="margin:14px 0 4px">Fond de l’écusson</p><div class="pal" style="margin-top:0">${sw('mkbg',m.bg)}<input type="color" class="colorin" data-in="mk.bg" value="${m.bg}" aria-label="Couleur du fond de l’écusson"></div>`:''}
+    <h2>Taille et position</h2>
+    <div class="field"><label for="mk-size">Taille (environ <span id="mkcm">${cmOf(m)} cm</span>)</label><input id="mk-size" type="range" data-in="mk.size" min="0.4" max="3" step="0.05" value="${m.size}"></div>
+    <div class="field"><label for="mk-rot">Rotation</label><input id="mk-rot" type="range" data-in="mk.rot" min="-45" max="45" step="1" value="${m.rot}"></div>
+    <div class="row2"><div class="field"><label for="mk-dx">Gauche / droite</label><input id="mk-dx" type="range" data-in="mk.dx" min="-30" max="30" step="1" value="${m.dx}"></div><div class="field"><label for="mk-dy">Haut / bas</label><input id="mk-dy" type="range" data-in="mk.dy" min="-30" max="30" step="1" value="${m.dy}"></div></div>
+    <button class="ghost" data-act="mkdel" style="width:100%">Supprimer ce logo</button>`;
+  }else ed=`<p class="mute">Aucun logo sur la pièce. Ajoute-en un ou pars d’une idée ci-dessous.</p>`;
+  return stage+`<div class="pad">${list}${S.mode==='piece'?`<p class="small mute" style="margin:10px 0 0">Mode pièce : seuls les logos de la pièce en cours (${CATS[S.cat].toLowerCase()}) s’affichent sur le mannequin.</p>`:''}${ed}
+    <h2>Idées rapides</h2>
+    <div class="chips">${QUICK.map((q,i)=>(S.mode==='piece'&&!q.marks.some(m=>MARKCAT[m.place]===S.cat))?'':`<button class="chip" data-act="mkquick" data-k="${i}">${esc(q.n)}</button>`).join('')}</div>
+    <p class="small mute" style="margin-top:14px">Les logos suivent le look de l’Atelier et sont enregistrés avec lui dans la collection. Le texte reprend le nom de ta marque tant que tu ne le changes pas.</p>
+  </div>`;
+}
+
+/* ---------- navigation ---------- */
+function renderTab(){
+  const v={studio,mark:marquage,brand,coll:collection,biz}[S.tab]||studio;
+  $('#app').innerHTML=v();
+  document.querySelectorAll('#tabs button').forEach(b=>b.setAttribute('aria-selected',String(b.dataset.t===S.tab)));
+  if(S.tab==='biz')bizCalc();
+  setHeader();
+}
+function go(t){S.tab=t;persist();renderTab();window.scrollTo(0,0)}
+
+/* ---------- événements ---------- */
+document.addEventListener('click',e=>{
+  const sv=e.target.closest('#svgHost [data-p]');
+  if(sv&&S.tab==='studio'){if(zonesOf(S)[sv.dataset.p]){S.sel=sv.dataset.p;persist();renderTab()}return}
+  const el=e.target.closest('[data-act]');if(!el)return;
+  const a=el.dataset.act,k=el.dataset.k;
+  switch(a){
+    case 'tab':go(el.dataset.t);return;
+    case 'view':S.view=k;break;
+    case 'random':if(S.mode==='piece')randomPiece();else randomLook();break;
+    case 'mode':S.mode=k;S.editId=null;S.sel=Object.keys(zonesOf(S))[0];break;
+    case 'cat':S.cat=k;S.editId=null;S.sel=Object.keys(zonesOf(S))[0];break;
+    case 'accGroup':S.accGroup=k;S.editId=null;S.sel=ACC[k].z;break;
+    case 'fabricB':S.fabricB=k;break;
+    case 'savePiece':case 'savePieceNew':{
+      const np=makePiece(),ex=(a==='savePiece')&&S.editId&&S.looks.find(l=>l.id===S.editId&&l.kind==='piece'&&l.cat===S.cat);
+      if(ex){Object.assign(ex,np,{id:ex.id,name:ex.name});toast('Pièce mise à jour')}
+      else{S.looks.push(np);S.editId=np.id;toast('Pièce enregistrée dans ta collection')}
+      persist();renderTab();return;
+    }
+    case 'openPiece':{const pc=S.looks.find(l=>l.id==k);if(pc){applyPiece(pc);S.mode='piece';S.cat=pc.cat;if(pc.cat==='acc')S.accGroup=pc.group;S.editId=pc.id;S.view='front';S.sel=Object.keys(zonesOf(S))[0];go('studio')}return}
+    case 'usePiece':{const pc=S.looks.find(l=>l.id==k);if(pc){applyPiece(pc);S.mode='outfit';S.editId=null;S.sel='tBody';S.view='front';toast('Pièce ajoutée à la tenue');go('studio')}return}
+    case 'zone':S.sel=k;break;
+    case 'col':S.c[S.sel]=k;break;
+    case 'top':S.top=k;break;
+    case 'bottom':S.bottom=k;break;
+    case 'fabric':S.fabric=k;break;
+    case 'preset':{const p=PRESETS[+k];S.top=p.top;S.bottom=p.bottom;S.fabric=p.fabric;S.fabricB=p.fabric;S.c=fixC(Object.assign({},S.c,p.c,{stitchB:p.c.stitch}));S.acc=Object.assign({},ACC0,p.acc||{});break}
+    case 'acc':S.acc[el.dataset.g]=k;if(k!=='none'&&el.dataset.g!=='shoe')S.sel=ACC[el.dataset.g].z;break;
+    case 'save':{
+      const n=S.looks.filter(l=>l.kind!=='piece').length+1;
+      S.looks.push({id:Date.now(),kind:'outfit',name:'Tenue '+n,top:S.top,bottom:S.bottom,fabric:S.fabric,fabricB:S.fabricB,c:Object.assign({},S.c),acc:Object.assign({},S.acc),marks:JSON.parse(JSON.stringify(S.marks))});
+      persist();toast('Tenue ajoutée à ta collection');return;
+    }
+    case 'mksel':S.mi=+k;{const mm=S.marks[S.mi];if(mm)S.view=PL[mm.place].v==='b'?'back':'front'}break;
+    case 'mkadd':{
+      if(S.marks.length>=8)return;
+      const used=S.marks.map(x=>x.place),free=Object.keys(PL).filter(x=>!used.includes(x)&&x!=='cap'&&(S.mode!=='piece'||MARKCAT[x]===S.cat));
+      const m=newMark({place:free[0]||'chest-l'});S.marks.push(m);S.mi=S.marks.length-1;S.view=PL[m.place].v==='b'?'back':'front';break;
+    }
+    case 'mkdel':S.marks.splice(S.mi,1);S.mi=Math.max(0,S.mi-1);break;
+    case 'mkkind':if(S.marks[S.mi])S.marks[S.mi].kind=k;break;
+    case 'mkshape':if(S.marks[S.mi])S.marks[S.mi].shape=k;break;
+    case 'mkfont':if(S.marks[S.mi])S.marks[S.mi].font=k;break;
+    case 'mkplace':if(S.marks[S.mi]){S.marks[S.mi].place=k;S.view=PL[k].v==='b'?'back':'front'}break;
+    case 'mktech':if(S.marks[S.mi])S.marks[S.mi].tech=k;break;
+    case 'mkcol':if(S.marks[S.mi])S.marks[S.mi].color=k;break;
+    case 'mkbg':if(S.marks[S.mi])S.marks[S.mi].bg=k;break;
+    case 'mkquick':{
+      QUICK[+k].marks.forEach(q=>{if(S.marks.length<8)S.marks.push(newMark(q))});
+      S.mi=S.marks.length-1;S.view=PL[S.marks[S.mi].place].v==='b'?'back':'front';break;
+    }
+    case 'names':genNames();break;
+    case 'useName':S.brand.name=k;break;
+    case 'vibe':{const v=S.brand.vibes,i=v.indexOf(k);i>=0?v.splice(i,1):v.push(k);break}
+    case 'genMan':S.brand.manifesto=manifesto();break;
+    case 'logo':S.brand.logo=k;break;
+    case 'logoBg':S.brand.bg=k;break;
+    case 'logoFg':S.brand.fg=k;break;
+    case 'openLook':{const l=S.looks.find(x=>x.id==k);if(l){S.top=l.top;S.bottom=l.bottom;S.fabric=l.fabric;S.fabricB=l.fabricB||l.fabric;S.mode='outfit';S.editId=null;S.c=fixC(Object.assign({},ACCC,l.c));S.acc=Object.assign({},ACC0,l.acc||{});S.marks=(l.marks||[]).map(m=>Object.assign({},DEFMARK,m));S.mi=0;S.view='front';go('studio')}return}
+    case 'sheet':openSheet=(openSheet==+k)?null:+k;break;
+    case 'del':
+      if(pendingDel==+k){S.looks=S.looks.filter(x=>x.id!=k);pendingDel=null;if(openSheet==+k)openSheet=null}
+      else{pendingDel=+k;setTimeout(()=>{if(pendingDel==+k){pendingDel=null;if(S.tab==='coll')renderTab()}},3000)}
+      break;
+    case 'copy':{
+      const l=S.looks.find(x=>x.id==k);if(!l)return;
+      const txt=sheetText(l);
+      const fb=()=>{try{const t=document.createElement('textarea');t.value=txt;t.style.position='fixed';t.style.opacity='0';document.body.appendChild(t);t.select();const ok=document.execCommand('copy');t.remove();toast(ok?'Fiche copiée':'Copie impossible : sélectionne le texte à la main')}catch(_){toast('Copie impossible : sélectionne le texte à la main')}};
+      try{navigator.clipboard.writeText(txt).then(()=>toast('Fiche copiée'),fb)}catch(_){fb()}
+      return;
+    }
+    case 'mult':{S.biz.price=Math.round((Number(S.biz.cost)||0)*Number(k)*100)/100;break}
+    default:return;
+  }
+  persist();renderTab();
+});
+document.addEventListener('input',e=>{
+  const t=e.target,k=t.dataset.in;if(!k)return;
+  if(k.startsWith('mk.')){
+    const m=S.marks[S.mi];if(!m)return;const pr=k.slice(3);
+    m[pr]=(pr==='size'||pr==='rot'||pr==='dx'||pr==='dy')?parseFloat(t.value):t.value;
+    if(pr==='size'){const e=$('#mkcm');if(e)e.textContent=cmOf(m)+' cm'}
+    refreshStage();persist();return;
+  }
+  if(k==='custom'){S.c[S.sel]=t.value;refreshStage();persist();return}
+  if(k==='name'){S.brand.name=t.value;setHeader();refreshLogo();persist();return}
+  if(k==='tag'){S.brand.tag=t.value;refreshLogo();persist();return}
+  if(k==='manifesto'){S.brand.manifesto=t.value;persist();return}
+  if(k==='lname'){const l=S.looks.find(x=>x.id==t.dataset.id);if(l)l.name=t.value;persist();return}
+  if(k.startsWith('biz.')){S.biz[k.slice(4)]=t.value===''?0:parseFloat(t.value);bizCalc();persist();return}
+  if(k==='chk'){S.checks[t.dataset.id]=t.checked;persist();const sp=t.nextElementSibling;if(sp)sp.className=t.checked?'done':'';return}
+});
+renderTab();
+</script>
+</body>
+</html>
