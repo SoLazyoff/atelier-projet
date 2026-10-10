@@ -79,6 +79,24 @@ h2:first-child{margin-top:4px}
 .primary:disabled{opacity:.45}
 .ghost{background:none;border:1px solid var(--line);color:var(--ink);border-radius:10px;padding:10px 14px;font-weight:600;font-size:14px}
 .row2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.row3{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+#print{display:none}
+@media print{
+  @page{size:A4;margin:14mm}
+  body{background:#fff!important;color:#111!important;padding:0}
+  body>*:not(#print){display:none!important}
+  #print{display:block;font:400 11pt/1.45 'Archivo',system-ui,sans-serif;color:#111}
+  #print header{display:flex;justify-content:space-between;align-items:baseline;border-bottom:2px solid #111;padding-bottom:6px;margin-bottom:14px}
+  #print header b{font-size:20pt;font-weight:850;font-stretch:125%}
+  #print .views{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px;break-inside:avoid}
+  #print figure{margin:0;background:linear-gradient(#e8e9ec,#b2b5bb);-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  #print figure svg{display:block;width:100%;height:105mm}
+  #print figcaption{text-align:center;font-weight:650;padding:4px 0;background:#fff}
+  #print p{margin:0}
+  #print .h{font-weight:750;margin-top:8px}
+  #print .t{font-weight:750;font-size:13pt}
+  #print .psw{display:inline-block;width:11pt;height:11pt;border:1px solid #0005;vertical-align:-2pt;margin-right:6pt;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+}
 
 .scroller{display:flex;gap:10px;overflow-x:auto;padding-bottom:6px;margin:0 -16px;padding-left:16px;padding-right:16px;scroll-snap-type:x proximity}
 .preset{flex:0 0 118px;scroll-snap-align:start;text-align:left;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:0 0 9px;overflow:hidden;color:var(--ink)}
@@ -143,6 +161,7 @@ h2:first-child{margin-top:4px}
   <button role="tab" data-act="tab" data-t="biz">Business</button>
 </nav>
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
+<div id="print"></div>
 
 <script>
 /* ---------- données ---------- */
@@ -949,7 +968,7 @@ function collection(){
   const sec=(t,list)=>list.length?`<h2>${t} (${list.length})</h2><div class="grid">${list.map(lookCard).join('')}</div>`:'';
   return `<div class="pad">
   ${sec('Hauts',pcs.filter(p=>p.cat==='top'))}${sec('Bas',pcs.filter(p=>p.cat==='bottom'))}${sec('Accessoires',pcs.filter(p=>p.cat==='acc'))}${sec('Tenues',outs)}
-  ${sh?`<div class="sheet"><pre>${esc(sheetText(sh))}</pre><button class="ghost" data-act="copy" data-k="${sh.id}">Copier la fiche</button><p class="small mute" style="margin:10px 0 0">À envoyer à un atelier ou un patronnier, ou à garder pour refaire la pièce en 3D.</p></div>`:''}
+  ${sh?`<div class="sheet"><pre>${esc(sheetText(sh))}</pre>${sheetButtons('look',sh.id,'copy')}<p class="small mute" style="margin:10px 0 0">À envoyer à un atelier ou un patronnier, ou à garder pour refaire la pièce en 3D.</p></div>`:''}
   </div>`;
 }
 
@@ -974,6 +993,37 @@ function lbText(l){
   return t;
 }
 
+/* ---------- export de la fiche (PDF par impression, image PNG) ---------- */
+/* kind : 'look' = pièce ou tenue de la collection, 'lb' = look du Lookbook */
+function sheetData(kind,id){
+  if(kind==='lb'){const l=S.lookbook.find(x=>x.id==id);return l&&{name:l.name,text:lbText(l),G:lookG(l)}}
+  const l=S.looks.find(x=>x.id==id);if(!l)return null;
+  const G=l.kind==='piece'?pieceG(l):{top:l.top,bottom:l.bottom,fabric:l.fabric,fabricB:l.fabricB||l.fabric,pat:l.pat,c:fixC(Object.assign({},ACCC,l.c)),acc:Object.assign({},ACC0,l.acc||{}),marks:l.marks};
+  return {name:l.name,text:sheetText(l),G};
+}
+const sheetViews=(G,uid)=>['front','back'].map(v=>build(Object.assign({},G,{view:v}),uid+v,null));
+function fileName(n,ext){return 'fiche-'+(String(n).normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'')||'piece')+'.'+ext}
+const today=()=>new Date().toLocaleDateString('fr-FR');
+function sheetHTML(d){
+  const [f,b]=sheetViews(d.G,'pr');
+  /* 1re ligne = titre, « Clé : valeur » = texte, ligne seule = titre de section, « - … (#hex) » = pastille */
+  const lines=d.text.split('\n').map((t,i)=>{
+    if(!t.trim())return '';
+    const hx=t.match(/\((#[0-9a-fA-F]{6})\)/);
+    if(t.startsWith('- '))return `<p>${hx?`<span class="psw" style="background:${hx[1]}"></span>`:''}${esc(t.slice(2))}</p>`;
+    return `<p class="${i===0?'t':t.includes(' : ')?'':'h'}">${esc(t)}</p>`;
+  }).join('');
+  return `<header><b>${esc(S.brand.name||'Ma marque')}</b><span>Fiche technique · ${today()}</span></header>
+  <div class="views"><figure>${f}<figcaption>Face</figcaption></figure><figure>${b}<figcaption>Dos</figcaption></figure></div>${lines}`;
+}
+function exportPdf(d){
+  const box=$('#print'),t0=document.title;
+  box.innerHTML=sheetHTML(d);document.title=fileName(d.name,'pdf').replace(/\.pdf$/,'');
+  const done=()=>{document.title=t0;box.innerHTML='';window.removeEventListener('afterprint',done)};
+  window.addEventListener('afterprint',done);
+  window.print();
+}
+function sheetButtons(kind,id,copyAct){return `<div class="row3"><button class="ghost" data-act="${copyAct}" data-k="${id}">Copier</button><button class="ghost" data-act="shImg" data-kind="${kind}" data-k="${id}">Image</button><button class="ghost" data-act="shPdf" data-kind="${kind}" data-k="${id}">PDF</button></div>`}
 function copyText(txt){
   const fb=()=>{try{const t=document.createElement('textarea');t.value=txt;t.style.position='fixed';t.style.opacity='0';document.body.appendChild(t);t.select();const ok=document.execCommand('copy');t.remove();toast(ok?'Fiche copiée':'Copie impossible : sélectionne le texte à la main')}catch(_){toast('Copie impossible : sélectionne le texte à la main')}};
   try{navigator.clipboard.writeText(txt).then(()=>toast('Fiche copiée'),fb)}catch(_){fb()}
@@ -990,7 +1040,7 @@ function lbCard(l){
 function lookbook(){
   const d=S.lb,ready=pieceById(d.top)&&pieceById(d.bottom),sh=S.lookbook.find(l=>l.id===lbSheetId);
   const board=S.lookbook.length?`<h2>Mes looks (${S.lookbook.length})</h2><div class="grid">${S.lookbook.map(lbCard).join('')}</div>
-    ${sh?`<div class="sheet"><pre>${esc(lbText(sh))}</pre><button class="ghost" data-act="lbCopy" data-k="${sh.id}">Copier la fiche</button></div>`:''}`:'';
+    ${sh?`<div class="sheet"><pre>${esc(lbText(sh))}</pre>${sheetButtons('lb',sh.id,'lbCopy')}</div>`:''}`:'';
   /* sans haut ou sans bas, on ne peut pas composer, mais les looks déjà faits restent visibles */
   if(!piecesOf('top').length||!piecesOf('bottom').length)return `<div class="pad"><h2>Lookbook</h2><p class="mute">Il faut au moins un haut et un bas enregistrés pour composer un look. Crée-les dans l’Atelier, en mode « Pièce par pièce ».</p><button class="primary" data-act="tab" data-t="studio">Aller à l’Atelier</button>${board}</div>`;
   const stage=`<section class="stage">
@@ -1170,6 +1220,7 @@ document.addEventListener('click',e=>{
       const l=S.looks.find(x=>x.id==k);if(!l)return;
       copyText(sheetText(l));return;
     }
+    case 'shPdf':{const d=sheetData(el.dataset.kind,k);if(d)exportPdf(d);return}
     case 'lbCopy':{const l=S.lookbook.find(x=>x.id==k);if(l)copyText(lbText(l));return}
     case 'lbPick':{
       const p=pieceById(+k),d=S.lb;if(!p)return;
