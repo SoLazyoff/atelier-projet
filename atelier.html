@@ -328,6 +328,33 @@ const SHAPES={
  sun:{l:'Soleil',o:'<circle r="4.5" fill="currentColor"/><path d="M0 -11 L0 -7 M0 11 L0 7 M-11 0 L-7 0 M11 0 L7 0 M-8 -8 L-5 -5 M8 8 L5 5 M-8 8 L-5 5 M8 -8 L5 -5" stroke="currentColor" stroke-width="2" stroke-linecap="round" fill="none"/>'},
  smile:{l:'Smiley',o:'<circle r="10" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="-3.5" cy="-3" r="1.4" fill="currentColor"/><circle cx="3.5" cy="-3" r="1.4" fill="currentColor"/><path d="M-5 3 Q0 9 5 3" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>'}
 };
+/* ---------- détails (fournitures) : poches, étiquettes, zips, cordons, capuches ----------
+   Chaque détail est une liste de primitives dans un repère centré, largeur ~20 :
+   f:1 couleur du détail, f:2 couleur foncée, f:3 métal ; s:'seam' surpiqûre, 'zip', 'cord', 'line' ; t:'txt' initiales de la marque.
+   abs:true = tracé à sa place sur le mannequin (capuches), sans emplacement ni échelle. */
+const HOODF='M108 70 Q98 28 150 22 Q202 28 192 70 Q150 84 108 70 Z',HOODB='M102 62 Q96 104 128 130 Q150 138 172 130 Q204 104 198 62 Q150 78 102 62 Z';
+const DETCATS={pocket:'Poches',label:'Étiquettes',zip:'Zips',cord:'Cordons',hood:'Capuches'};
+const DET={
+  patch:{c:'pocket',l:'Poche plaquée',place:'chest-l',pr:[{d:'M-9 -10 L9 -10 L9 7 Q9 10 6 10 L-6 10 Q-9 10 -9 7 Z',f:1},{d:'M-7.5 -8.5 L7.5 -8.5 L7.5 6.5 Q7.5 8.5 5.5 8.5 L-5.5 8.5 Q-7.5 8.5 -7.5 6.5 Z',s:'seam'}]},
+  flap:{c:'pocket',l:'Poche à rabat',place:'chest-r',pr:[{d:'M-9 -8 L9 -8 L9 10 L-9 10 Z',f:1},{d:'M-9.5 -10 L9.5 -10 L9.5 -3 L0 0 L-9.5 -3 Z',f:2},{d:'M-8 -8.6 L8 -8.6',s:'seam'},{d:'M-1.3 -2.6 L1.3 -2.6 L1.3 -0.2 L-1.3 -0.2 Z',f:3}]},
+  cargo:{c:'pocket',l:'Poche cargo à soufflet',place:'thigh-l',pr:[{d:'M-10 -12 L10 -12 L11 13 L-11 13 Z',f:1},{d:'M-10.5 -14 L10.5 -14 L10.5 -7 L-10.5 -7 Z',f:2},{d:'M-10 -7 L-11 13 M10 -7 L11 13 M0 -7 L0 13',s:'seam'}]},
+  zipped:{c:'pocket',l:'Poche zippée',place:'chest-r',pr:[{d:'M-10 -2.2 L10 -2.2 L10 2.2 L-10 2.2 Z',f:2},{d:'M-9 0 L9 0',s:'zip'},{d:'M8 -1.5 L10 -1.5 L10.6 5 L7.4 5 Z',f:3}]},
+  welt:{c:'pocket',l:'Poche passepoilée',place:'pocket-l',pr:[{d:'M-9 -1.6 L9 -1.6 L9 1.6 L-9 1.6 Z',f:2},{d:'M-9 0 L9 0',s:'line'}]},
+  woven:{c:'label',l:'Étiquette tissée de col',place:'neck-in',pr:[{d:'M-9 -4.5 L9 -4.5 L9 4.5 L-9 4.5 Z',f:1},{t:'txt'}]},
+  flag:{c:'label',l:'Étiquette drapeau de côté',place:'hem-l',pr:[{d:'M-3 -5 L6 -5 L6 5 L-3 5 Z',f:1},{d:'M-3 -5 L-3 5',s:'line'}]},
+  rubber:{c:'label',l:'Patch caoutchouc',place:'sleeve-r',pr:[{d:'M-9 -6 Q-9 -8 -7 -8 L7 -8 Q9 -8 9 -6 L9 6 Q9 8 7 8 L-7 8 Q-9 8 -9 6 Z',f:1},{t:'txt'}]},
+  leather:{c:'label',l:'Patch cuir de ceinture',place:'waist-b',pr:[{d:'M-10 -6 L10 -6 L10 6 L-10 6 Z',f:1},{d:'M-8.5 -4.5 L8.5 -4.5 L8.5 4.5 L-8.5 4.5 Z',s:'seam'},{t:'txt'}]},
+  zipv:{c:'zip',l:'Zip vertical',place:'chest-c',pr:[{d:'M-1.8 -13 L1.8 -13 L1.8 13 L-1.8 13 Z',f:2},{d:'M0 -12 L0 12',s:'zip'},{d:'M-1.6 -13 L1.6 -13 L2 -6 L-2 -6 Z',f:3}]},
+  ziph:{c:'zip',l:'Zip horizontal',place:'chest-c',pr:[{d:'M-13 -1.8 L13 -1.8 L13 1.8 L-13 1.8 Z',f:2},{d:'M-12 0 L12 0',s:'zip'},{d:'M10 -1.6 L12 -1.6 L12.6 6 L9.4 6 Z',f:3}]},
+  puller:{c:'zip',l:'Tirette de zip',place:'neck-f',pr:[{d:'M-1.6 -7 L1.6 -7 L2.6 7 L-2.6 7 Z',f:3},{d:'M0 -5 L0 -1',s:'line'}]},
+  cords:{c:'cord',l:'Cordons de serrage',place:'neck-f',pr:[{d:'M-4 -10 Q-5 0 -6 9 M4 -10 Q5 0 6 9',s:'cord'},{d:'M-7.2 9 L-4.8 9 L-4.8 14 L-7.2 14 Z M4.8 9 L7.2 9 L7.2 14 L4.8 14 Z',f:3}]},
+  toggle:{c:'cord',l:'Stoppeur de cordon',place:'hem-l',pr:[{d:'M0 -11 L0 -4 M0 4 L0 9',s:'cord'},{d:'M-2.8 -4 L2.8 -4 L2.8 4 L-2.8 4 Z',f:3}]},
+  hood:{c:'hood',l:'Capuche ajoutée',place:'hood',abs:true},
+  hood2:{c:'hood',l:'Capuche doublée',place:'hood',abs:true}
+};
+/* emplacements propres aux détails, en plus de ceux des logos */
+const DPL={'neck-f':{v:'f',x:150,y:84,w:20,l:'Encolure devant'},'hem-l':{v:'f',x:198,y:192,w:20,l:'Ourlet côté'},'waist-f':{v:'f',x:150,y:236,w:20,l:'Taille devant'},'neck-in':{v:'b',x:150,y:80,w:20,l:'Col intérieur dos'},'waist-b':{v:'b',x:150,y:226,w:22,l:'Ceinture dos'},'hood':{v:'*',x:0,y:0,w:20,l:'Capuche'}};
+const DEFDET={kind:'patch',place:'chest-l',size:1,rot:0,dx:0,dy:0,color:'#2b2d31'};
 const DEFMARK={kind:'text',text:'',shape:'star',font:'',place:'chest-l',size:1.2,tech:'embroidery',color:'#f3f1ea',bg:'#111214',rot:0,dx:0,dy:0};
 const QUICK=[
  {n:'Logo brodé sur la poitrine',marks:[{place:'chest-l',tech:'embroidery',kind:'text',size:1.3}]},
@@ -336,7 +363,7 @@ const QUICK=[
  {n:'Monogramme en relief sur la cuisse',marks:[{place:'thigh-l',tech:'puff',kind:'mono',size:1.2}]},
  {n:'Petit logo nuque et poche arrière',marks:[{place:'nape',tech:'embroidery',kind:'text',size:1},{place:'pocket-l',tech:'patch',kind:'shape',shape:'bolt',size:1}]}
 ];
-const MARKCAT={'chest-l':'top','chest-r':'top','chest-c':'top','belly':'top','sleeve-l':'top','sleeve-r':'top','nape':'top','back-c':'top','back-low':'top','thigh-l':'bottom','thigh-r':'bottom','pocket-l':'bottom','pocket-r':'bottom','cap':'acc'};
+const MARKCAT={'neck-f':'top','hem-l':'top','neck-in':'top','hood':'top','waist-f':'bottom','waist-b':'bottom','chest-l':'top','chest-r':'top','chest-c':'top','belly':'top','sleeve-l':'top','sleeve-r':'top','nape':'top','back-c':'top','back-low':'top','thigh-l':'bottom','thigh-r':'bottom','pocket-l':'bottom','pocket-r':'bottom','cap':'acc'};
 const CATS={top:'Haut',bottom:'Bas',acc:'Accessoire'};
 /* ---------- patronage : points de mesure (cm, taille M), gradation et tolérances ---------- */
 const SIZES=['S','M','L','XL','XXL'],SIZEOFF=[-1,0,1,2,3];
@@ -435,7 +462,7 @@ const DEF={
   brand:{name:'MA MARQUE',tag:'',vibes:['Streetwear'],logo:'bold',fg:'#f3f1ea',bg:'#111214',manifesto:''},
   looks:[],checks:{},marks:[],mi:0,
   lookbook:[],lb:{top:null,bottom:null,acc:{},view:'front'},
-  pat:{top:'none',bottom:'none'},theme:'auto',collView:'mock',libCat:'all',
+  pat:{top:'none',bottom:'none'},dets:[],di:0,markView:'logos',theme:'auto',collView:'mock',libCat:'all',
   biz:{cost:22,qty:30,fixed:150,ship:4.5,fee:3,price:65}
 };
 let S=load();
@@ -449,6 +476,9 @@ function load(){
       d.acc=Object.assign({},ACC0,o.acc||{});
       d.fabricB=o.fabricB||o.fabric||d.fabricB;
       d.marks=Array.isArray(o.marks)?o.marks.map(m=>Object.assign({},DEFMARK,m)):d.marks;
+      d.dets=Array.isArray(o.dets)?o.dets.filter(x=>x&&DET[x.kind]).map(x=>Object.assign({},DEFDET,x)):[];
+      d.di=Math.min(Math.max(0,o.di||0),Math.max(0,d.dets.length-1));
+      if(d.markView!=='dets')d.markView='logos';
       d.mi=Math.min(Math.max(0,o.mi||0),Math.max(0,d.marks.length-1));
       d.brand=Object.assign({},DEF.brand,o.brand||{});
       d.biz=Object.assign({},DEF.biz,o.biz||{});
@@ -502,25 +532,30 @@ function markCore(m,sz){
   const st=`font-family:${k.ff};font-weight:${k.w};letter-spacing:${k.ls};font-stretch:${k.st}`;
   if(m.kind==='shape'){const sh=SHAPES[m.shape]||SHAPES.star;return {el:`<g transform="scale(${sz/24})">${sh.d?`<path d="${sh.d}" fill="currentColor"/>`:sh.o}</g>`,w:sz,h:sz}}
   if(m.kind==='mono'){
-    const w2=(B.name||'M').trim().split(/\s+/);
-    const txt=(m.text||(w2.length>1?w2[0][0]+w2[1][0]:(w2[0]||'M').slice(0,2))).toUpperCase().slice(0,3),fs=sz*.46;
+    const txt=(m.text||initials(B.name)).toUpperCase().slice(0,3),fs=sz*.46;
     return {el:`<circle r="${sz/2}" fill="none" stroke="currentColor" stroke-width="${Math.max(.8,sz*.07)}"/><text x="0" y="${fs*.35}" text-anchor="middle" fill="currentColor" style="${st};font-size:${fs}px">${esc(txt)}</text>`,w:sz,h:sz};
   }
   let t=(m.text||B.name||'LOGO').trim()||'LOGO';t=k.up?t.toUpperCase():t.toLowerCase();
   const fs=Math.max(2.5,Math.min(sz/(t.length*.62),sz*.5));
   return {el:`<text x="0" y="${fs*.35}" text-anchor="middle" fill="currentColor" style="${st};font-size:${fs}px">${esc(t)}</text>`,w:Math.min(sz*1.05,t.length*fs*.62),h:fs*1.1};
 }
-function drawMark(m,G,A,F){
-  const pl=PL[m.place];if(!pl||(pl.v==='f')!==F)return '';
+/* position d'un logo ou d'un détail sur le mannequin ; null si l'emplacement n'existe pas dans cette vue ou sur cette coupe */
+function placeXY(place,G,A,F){
+  const pl=PL[place]||DPL[place];if(!pl||(pl.v==='f')!==F)return null;
   let x=pl.x,y=pl.y,bw=pl.w;
-  if(m.place==='sleeve-l'||m.place==='sleeve-r'){
-    const t=G.top;if(t==='vest'||t==='jersey')return '';
+  if(place==='sleeve-l'||place==='sleeve-r'){
+    const t=G.top;if(t==='vest'||t==='jersey'||t==='pufvest')return null;
     let sx=66,sy=122,sw=20;
     if(t==='tshirt'||t==='polo'){sx=80;sy=96;sw=15}else if(t==='puffer'){sx=60;sy=128;sw=22}
-    x=m.place==='sleeve-l'?300-sx:sx;y=sy;bw=sw;
+    x=place==='sleeve-l'?300-sx:sx;y=sy;bw=sw;
   }
-  if(m.place==='thigh-l'||m.place==='thigh-r')y=({short:268,bermuda:300,skirt:290})[G.bottom]||300;
-  if(m.place==='cap'){const hy=({cap:12,beanie:6,bob:8,fedora:6,beret:6,headband:18,balaclava:12})[A.head];if(hy===undefined)return '';y=hy}
+  if(place==='thigh-l'||place==='thigh-r')y=({short:268,bermuda:300,skirt:290})[G.bottom]||300;
+  if(place==='cap'){const hy=({cap:12,beanie:6,bob:8,fedora:6,beret:6,headband:18,balaclava:12})[A.head];if(hy===undefined)return null;y=hy}
+  return {x,y,bw};
+}
+function drawMark(m,G,A,F){
+  const ps=placeXY(m.place,G,A,F);if(!ps)return '';
+  const {x,y,bw}=ps;
   const sz=bw*(Number(m.size)||1),col=m.color||'#f3f1ea',dark=mixHex(col,-.45),core=markCore(m,sz);
   const g=(attrs)=>`<g ${attrs}>${core.el}</g>`;
   let inner;
@@ -532,6 +567,31 @@ function drawMark(m,G,A,F){
     inner=`<rect x="${-w2/2}" y="${-bh/2}" width="${w2}" height="${bh}" rx="${bh*.18}" fill="${bg}" stroke="${mixHex(bg,-.3)}" stroke-width=".5"/><rect x="${-w2/2+bh*.07}" y="${-bh/2+bh*.07}" width="${w2-bh*.14}" height="${bh-bh*.14}" rx="${bh*.12}" fill="none" stroke="${col}" stroke-opacity=".75" stroke-width=".45" stroke-dasharray="1.1 .8"/>`+g(`color="${col}"`);
   }else inner=`<g color="#000" opacity=".35" transform="translate(.5 .7)">${core.el}</g>`+g(`color="${col}" stroke="${dark}" stroke-width=".35" stroke-dasharray="1 .7" paint-order="stroke fill"`);
   return `<g transform="translate(${x+(Number(m.dx)||0)} ${y+(Number(m.dy)||0)}) rotate(${Number(m.rot)||0})" pointer-events="none">${inner}</g>`;
+}
+/* initiales de la marque : deux premiers mots, sinon deux premières lettres */
+function initials(n){const w2=String(n===undefined?(typeof S!=='undefined'&&S.brand&&S.brand.name)||'M':n||'M').trim().split(/\s+/);return (w2.length>1?w2[0][0]+w2[1][0]:(w2[0]||'M').slice(0,2)).toUpperCase()}
+function detPrims(dt,F){
+  const D=DET[dt.kind];if(!D)return [];
+  if(!D.abs)return D.pr;
+  const pr=[{d:F?HOODF:HOODB,f:1}];
+  if(dt.kind==='hood2')pr.push({d:F?'M118 66 Q112 36 150 30 Q188 36 182 66 Q150 76 118 66 Z':'M114 66 Q112 96 132 116 Q150 122 168 116 Q188 96 186 66 Q150 80 114 66 Z',f:2});
+  pr.push({d:F?'M110 68 Q150 82 190 68':'M104 64 Q150 80 196 64',s:'seam'});
+  return pr;
+}
+/* style : 'real' (mannequin), 'line', 'gray' ou 'color' (dessins à plat et mockups) */
+function detSVG(dt,F,x,y,sc,style){
+  const col=dt.color||'#2b2d31',real=style==='real'||style==='color';
+  const fill=f=>!real?(style==='gray'?(f===3?'#b4b6ba':'#d5d6d9'):'#fff'):f===2?mixHex(col,-.35):f===3?'#b9bcc2':col;
+  const ink=style==='line'?'#111':style==='gray'?'#3f4146':lum(col)<.4?'#e9e9e6':'#2a2b2f';
+  const sw=1/Math.max(Number(sc)||1,.2);
+  const prs=detPrims(dt,F).map(p=>{
+    if(p.t==='txt')return `<text x="0" y="1.9" text-anchor="middle" font-size="5.2" font-weight="800" font-family="Archivo,system-ui,sans-serif" fill="${real?ink:'#111'}">${esc(initials())}</text>`;
+    if(p.f)return `<path d="${p.d}" fill="${fill(p.f)}" stroke="${style==='real'?mixHex(fill(p.f),-.4):ink}" stroke-width="${.6*sw}" stroke-linejoin="round"/>`;
+    if(p.s==='zip')return `<path d="${p.d}" fill="none" stroke="${real?'#d9dbe0':ink}" stroke-width="${2.2*sw}" stroke-dasharray="${1.1*sw} ${1.4*sw}"/>`;
+    if(p.s==='cord')return `<path d="${p.d}" fill="none" stroke="${real?col:ink}" stroke-width="${1.6*sw}" stroke-linecap="round"/>`;
+    return `<path d="${p.d}" fill="none" stroke="${ink}" stroke-width="${.6*sw}"${p.s==='seam'?` stroke-dasharray="${1.6*sw} ${1.1*sw}"`:''}/>`;
+  }).join('');
+  return DET[dt.kind]&&DET[dt.kind].abs?`<g pointer-events="none">${prs}</g>`:`<g transform="translate(${r1(x)} ${r1(y)}) rotate(${Number(dt.rot)||0}) scale(${r1(sc*100)/100})" pointer-events="none">${prs}</g>`;
 }
 function P(id,d,m){return m?[{t:'p',id,d},{t:'p',id,d:mir(d)}]:[{t:'p',id,d}]}
 function build(G,uid,sel){
@@ -566,6 +626,10 @@ function build(G,uid,sel){
   add(`<ellipse cx="150" cy="478" rx="112" ry="9" fill="#000" opacity=".16"/>`);
   if(showTop&&hooded&&F)add(P('tCollar','M108 70 Q98 28 150 22 Q202 28 192 70 Q150 84 108 70 Z',0));
 
+  /* détails posés à plat (poches, zips…) et capuches ajoutées */
+  const DETS=(G.dets||[]).filter(dt=>DET[dt.kind]&&!(only&&MARKCAT[dt.place]!==only));
+  const detItem=dt=>{if(DET[dt.kind].abs)return {t:'det',dt,F};const ps=placeXY(dt.place,G,A,F);return ps&&{t:'det',dt,F,x:ps.x+(Number(dt.dx)||0),y:ps.y+(Number(dt.dy)||0),sc:ps.bw*(Number(dt.size)||1)/20}};
+  if(F)DETS.filter(dt=>DET[dt.kind].abs).forEach(dt=>add(detItem(dt)));
   /* tête, couvre-chef, lunettes */
   add(`<path d="M142 46 L158 46 L160 66 L140 66 Z" fill="${SKIN2}"/><ellipse cx="150" cy="30" rx="17" ry="21" fill="${SKIN}"/>`);
   add(F?`<path d="M132 26 Q130 6 150 7 Q170 6 168 26 Q150 14 132 26 Z" fill="#26272b"/>`:`<path d="M132 30 Q128 4 150 5 Q172 4 168 30 Q150 40 132 30 Z" fill="#26272b"/>`);
@@ -830,6 +894,7 @@ function build(G,uid,sel){
   if(bibOver)bib();
   /* marquages (logos) */
   (G.marks||[]).forEach(m=>{if(only&&MARKCAT[m.place]!==only)return;const t=drawMark(m,G,A,F);if(t)add(t)});
+  DETS.filter(dt=>!(F&&DET[dt.kind].abs)).forEach(dt=>{const it=detItem(dt);if(it)add(it)});
 
   /* accessoires par-dessus */
   if(A.neck==='scarf'){add(P('aNeck',F?'M124 60 Q150 90 176 60 L182 72 Q150 106 118 72 Z':'M124 60 Q150 74 176 60 L182 72 Q150 86 118 72 Z',0));if(F)add(P('aNeck','M150 88 L172 84 L176 156 L152 160 Z',0))}
@@ -871,20 +936,22 @@ function build(G,uid,sel){
       /* line = trait noir (dessin technique), gray = mockup de bibliothèque, color = mockup aux couleurs de la pièce */
       const st=G.flat===true?'line':G.flat;
       if(typeof x==='string')return;
+      if(x.t==='det'){out+=detSVG(x.dt,x.F,x.x,x.y,x.sc,st);return}
       if(x.t==='p'){
         if(x.id[0]==='a')return;(FZ[x.id]=FZ[x.id]||[]).push(x.d);
-        const fl=st==='color'?C[x.id]:st==='gray'?'#d5d6d9':'#fff',sk=st==='line'?'#111':st==='gray'?'#3f4146':lum(fl)<.4?'#e9e9e6':'#2a2b2f',pk=PATZ[x.id];
+        const fl=st==='color'?(C[x.id]||'#d5d6d9'):st==='gray'?'#d5d6d9':'#fff',sk=st==='line'?'#111':st==='gray'?'#3f4146':lum(fl)<.4?'#e9e9e6':'#2a2b2f',pk=PATZ[x.id];
         out+=`<path d="${x.d}" fill="${fl}" stroke="${sk}" stroke-width="1.2" stroke-linejoin="round"/>`;
         if(st==='color'&&pk&&PT[pk]!=='none')out+=`<path d="${x.d}" fill="url(#pat${pk[0]}${uid})" stroke="${sk}" stroke-width="1.2"/>`;
         return;
       }
-      const lc=st==='line'?'#111':st==='gray'?'#55575c':(x.b?C.stitchB:C.stitch);
+      const lc=st==='line'?'#111':st==='gray'?'#55575c':((x.b?C.stitchB:C.stitch)||'#55575c');
       if(x.k==='zip')out+=`<path d="${x.d}" fill="none" stroke="${lc}" stroke-width="1.6" stroke-dasharray="1.2 1.6"/>`;
       else if(x.k==='btn')out+=`<path d="${x.d}" fill="none" stroke="${lc}" stroke-width="3" stroke-linecap="round" stroke-dasharray="0.1 9"/>`;
       else out+=`<path d="${x.d}" fill="none" stroke="${lc}" stroke-width="${x.k==='str'?1:.7}"${x.k==='str'?'':' stroke-dasharray="3 2"'}/>`;
       return;
     }
     if(typeof x==='string'){out+=x;return}
+    if(x.t==='det'){out+=detSVG(x.dt,x.F,x.x,x.y,x.sc,'real');return}
     if(x.t==='p'){
       const pk=PATZ[x.id];
       out+=`<path data-p="${x.id}" d="${x.d}" fill="${C[x.id]}" stroke="${x.id[0]==='b'?C.stitchB:C.stitch}" stroke-width="1.1" stroke-linejoin="round"/>${pk&&PT[pk]!=='none'?`<path d="${x.d}" fill="url(#pat${pk[0]}${uid})" pointer-events="none"/>`:''}<path d="${x.d}" fill="url(#vol${uid})" pointer-events="none"/>${x.id[0]==='a'?'':`<path d="${x.d}" fill="url(#ov${x.id[0]==='b'?'b':''}${uid})" pointer-events="none"/>`}`;
@@ -913,25 +980,25 @@ function zonesOf(G){
   return z;
 }
 function fixC(c){c.stitchB=c.stitchB||c.stitch;c.tPat=c.tPat||'#f3f1ea';c.bPat=c.bPat||'#f3f1ea';return c}
-function pieceG(p){return {pat:{[p.cat]:p.pat||'none'},mode:'piece',cat:p.cat,accGroup:p.group,top:p.top,bottom:p.bottom,fabric:p.fabric,fabricB:p.fabricB||p.fabric,c:p.c,acc:p.cat==='acc'?{[p.group]:p.opt}:{},marks:p.marks,view:'front'}}
+function pieceG(p){return {dets:p.dets,pat:{[p.cat]:p.pat||'none'},mode:'piece',cat:p.cat,accGroup:p.group,top:p.top,bottom:p.bottom,fabric:p.fabric,fabricB:p.fabricB||p.fabric,c:p.c,acc:p.cat==='acc'?{[p.group]:p.opt}:{},marks:p.marks,view:'front'}}
 function pieceThumb(p,uid){return build(pieceG(p),uid,null)}
 function makePiece(){
-  const cat=S.cat,id=Date.now(),mk=c=>S.marks.filter(m=>MARKCAT[m.place]===c).map(m=>Object.assign({},m));
+  const cat=S.cat,id=Date.now(),mk=c=>S.marks.filter(m=>MARKCAT[m.place]===c).map(m=>Object.assign({},m)),dk=c=>S.dets.filter(x=>MARKCAT[x.place]===c).map(x=>Object.assign({},x));
   const cnt=S.looks.filter(l=>l.kind==='piece'&&l.cat===cat).length+1;
-  if(cat==='top'){const c={};Object.keys(TOPS[S.top].zones).concat('stitch','tPat').forEach(k=>c[k]=S.c[k]);return {id,kind:'piece',cat,name:TOPS[S.top].label+' '+cnt,top:S.top,fabric:S.fabric,pat:S.pat.top,c,marks:mk('top')}}
-  if(cat==='bottom'){const c={};Object.keys(BOTTOMS[S.bottom].zones).concat('stitchB','bPat').forEach(k=>c[k]=S.c[k]);return {id,kind:'piece',cat,name:BOTTOMS[S.bottom].label+' '+cnt,bottom:S.bottom,fabric:S.fabricB,fabricB:S.fabricB,pat:S.pat.bottom,c,marks:mk('bottom')}}
+  if(cat==='top'){const c={};Object.keys(TOPS[S.top].zones).concat('stitch','tPat').forEach(k=>c[k]=S.c[k]);return {id,kind:'piece',cat,name:TOPS[S.top].label+' '+cnt,top:S.top,fabric:S.fabric,pat:S.pat.top,c,marks:mk('top'),dets:dk('top')}}
+  if(cat==='bottom'){const c={};Object.keys(BOTTOMS[S.bottom].zones).concat('stitchB','bPat').forEach(k=>c[k]=S.c[k]);return {id,kind:'piece',cat,name:BOTTOMS[S.bottom].label+' '+cnt,bottom:S.bottom,fabric:S.fabricB,fabricB:S.fabricB,pat:S.pat.bottom,c,marks:mk('bottom'),dets:dk('bottom')}}
   const g=S.accGroup,z=ACC[g].z;return {id,kind:'piece',cat:'acc',name:ACC[g].opts[S.acc[g]]+' '+cnt,group:g,opt:S.acc[g],c:{[z]:S.c[z]},marks:g==='head'?mk('acc'):[]};
 }
 /* fusionne une pièce dans une tenue sans toucher à S : sert à l'Atelier et au Lookbook */
 function mergePiece(G,p){
-  const o={top:G.top,bottom:G.bottom,fabric:G.fabric,fabricB:G.fabricB,pat:Object.assign({top:'none',bottom:'none'},G.pat),c:Object.assign({},G.c),acc:Object.assign({},G.acc),marks:(G.marks||[]).slice()};
-  const keep=c=>o.marks.filter(m=>MARKCAT[m.place]!==c),norm=ms=>(ms||[]).map(m=>Object.assign({},DEFMARK,m));
-  if(p.cat==='top'){o.top=p.top;o.fabric=p.fabric;o.pat.top=p.pat||'none';Object.assign(o.c,p.c);o.marks=keep('top').concat(norm(p.marks))}
-  else if(p.cat==='bottom'){o.bottom=p.bottom;o.fabricB=p.fabricB||p.fabric;o.pat.bottom=p.pat||'none';Object.assign(o.c,p.c);o.marks=keep('bottom').concat(norm(p.marks))}
+  const o={top:G.top,bottom:G.bottom,fabric:G.fabric,fabricB:G.fabricB,pat:Object.assign({top:'none',bottom:'none'},G.pat),c:Object.assign({},G.c),acc:Object.assign({},G.acc),marks:(G.marks||[]).slice(),dets:(G.dets||[]).slice()};
+  const keepD=(c,p)=>{o.dets=o.dets.filter(x=>MARKCAT[x.place]!==c).concat((p.dets||[]).map(x=>Object.assign({},DEFDET,x)))},keep=c=>o.marks.filter(m=>MARKCAT[m.place]!==c),norm=ms=>(ms||[]).map(m=>Object.assign({},DEFMARK,m));
+  if(p.cat==='top'){o.top=p.top;o.fabric=p.fabric;o.pat.top=p.pat||'none';Object.assign(o.c,p.c);o.marks=keep('top').concat(norm(p.marks));keepD('top',p)}
+  else if(p.cat==='bottom'){o.bottom=p.bottom;o.fabricB=p.fabricB||p.fabric;o.pat.bottom=p.pat||'none';Object.assign(o.c,p.c);o.marks=keep('bottom').concat(norm(p.marks));keepD('bottom',p)}
   else{o.acc[p.group]=p.opt;Object.assign(o.c,p.c);if(p.group==='head')o.marks=keep('acc').concat(norm(p.marks))}
   return o;
 }
-function applyPiece(p){Object.assign(S,mergePiece(S,p));S.mi=0}
+function applyPiece(p){Object.assign(S,mergePiece(S,p));S.mi=0;S.di=0}
 function randomPiece(){
   const pick=a=>a[Math.floor(Math.random()*a.length)];
   const A=pick(PAL);let B=pick(PAL);while(B===A)B=pick(PAL);let Cc=pick(PAL);while(Cc===A||Cc===B)Cc=pick(PAL);const h=()=>Math.random()<.5;
@@ -1082,6 +1149,7 @@ function applyTheme(){const r=document.documentElement;if(S.theme==='auto')r.rem
 /* ---------- onglet Collection ---------- */
 let openSheet=null,pendingDel=null,openPatron=null;
 function patLine(k,col,lab){return k&&k!=='none'&&PATS[k]?`- ${lab} : ${PATS[k]}, ${colorName(col||'#f3f1ea')} (${col||'#f3f1ea'})\n`:''}
+function detLines(ds){return '\nDétails et fournitures\n'+ds.filter(x=>DET[x.kind]).map(x=>`- ${DET[x.kind].l} · ${(PL[x.place]||DPL[x.place]).l} · ${colorName(x.color)} (${x.color})\n`).join('')}
 function sheetText(L){
   if(L.kind==='piece'){
     let t=`Fiche technique (pièce) : ${L.name}\nMarque : ${S.brand.name}\n\n`;
@@ -1089,6 +1157,7 @@ function sheetText(L){
     else if(L.cat==='bottom'){t+=`Bas : ${BOTTOMS[L.bottom].label}\nMatière : ${FABRICS[L.fabricB||L.fabric]}\n\nCouleurs\n`;const Z=BOTTOMS[L.bottom].zones;Object.keys(Z).forEach(k=>{t+=`- ${Z[k]} : ${colorName(L.c[k])} (${L.c[k]})\n`});t+=`- Surpiqûres et liserés : ${colorName(L.c.stitchB)} (${L.c.stitchB})\n`+patLine(L.pat,L.c.bPat,'Motif (jambes)')}
     else{const z=ACC[L.group].z;t+=`Accessoire : ${ACC[L.group].label}, ${ACC[L.group].opts[L.opt]}\nCouleur : ${colorName(L.c[z])} (${L.c[z]})\n`}
     if(L.marks&&L.marks.length){t+='\nMarquage (logos)\n';L.marks.forEach((m,i)=>{t+='- '+markDesc(Object.assign({},DEFMARK,m),i)+'\n'})}
+    if(L.dets&&L.dets.length)t+=detLines(L.dets);
     const sr=specRows(L);
     if(sr.length){t+=`\nMesures en cm (${SIZES.join(' / ')})\n`;sr.forEach(r=>{t+=`- ${r.letter}. ${r.label} : ${r.vals.map(cm).join(' / ')} (tolérance ±${cm(r.tol)})\n`})}
     return t;
@@ -1100,12 +1169,13 @@ function sheetText(L){
   const lp=L.pat||{};s+=patLine(lp.top,L.c.tPat,'Motif du haut (corps et manches)')+patLine(lp.bottom,L.c.bPat,'Motif du bas (jambes)');
   const ac=Object.assign({},ACC0,L.acc||{});
   Object.keys(ACC).forEach(g=>{if(ac[g]!=='none'){const z=ACC[g].z,col=(L.c[z]||ACCC[z]);s+=`- ${ACC[g].label} : ${ACC[g].opts[ac[g]]}, ${colorName(col)} (${col})\n`}});
+  if(L.dets&&L.dets.length)s+=detLines(L.dets);
   if(L.marks&&L.marks.length){s+='\nMarquage (logos)\n';L.marks.forEach((m,i)=>{s+='- '+markDesc(Object.assign({},DEFMARK,m),i)+'\n'})}
   return s;
 }
 function lookCard(l){
   const isP=l.kind==='piece';
-  const th=isP?pieceThumb(l,'c'+l.id):build({top:l.top,bottom:l.bottom,fabric:l.fabric,fabricB:l.fabricB,pat:l.pat,view:'front',c:l.c,acc:l.acc,marks:l.marks},'c'+l.id,null);
+  const th=isP?pieceThumb(l,'c'+l.id):build({top:l.top,bottom:l.bottom,fabric:l.fabric,fabricB:l.fabricB,pat:l.pat,view:'front',c:l.c,acc:l.acc,marks:l.marks,dets:l.dets},'c'+l.id,null);
   return `<div class="look"><div class="th">${th}</div><div class="in"><input data-in="lname" data-id="${l.id}" value="${esc(l.name)}" aria-label="Nom" maxlength="40"><div class="acts"><button data-act="${isP?'openPiece':'openLook'}" data-k="${l.id}">Ouvrir</button>${isP?`<button data-act="usePiece" data-k="${l.id}">Dans la tenue</button>`:''}${isP&&l.cat!=='acc'?`<button data-act="patron" data-k="${l.id}">Patron</button>`:''}<button data-act="sheet" data-k="${l.id}">Fiche</button><button data-act="del" data-k="${l.id}">${pendingDel===l.id?'Confirmer':'Retirer'}</button></div></div></div>`;
 }
 function patronPanel(p){
@@ -1160,7 +1230,7 @@ let lbSheetId=null,lbPending=null;
 const pieceById=id=>S.looks.find(l=>l.id===id&&l.kind==='piece');
 /* reconstruit la tenue d'un look à partir des pièces qu'il référence ; miss liste les emplacements dont la pièce a été retirée */
 function lookG(l,view){
-  let G={top:DEF.top,bottom:DEF.bottom,fabric:DEF.fabric,fabricB:DEF.fabricB,c:Object.assign({},DEF.c),acc:Object.assign({},ACC0,{glass:'none'}),marks:[]};
+  let G={top:DEF.top,bottom:DEF.bottom,fabric:DEF.fabric,fabricB:DEF.fabricB,c:Object.assign({},DEF.c),acc:Object.assign({},ACC0,{glass:'none'}),marks:[],dets:[]};
   const miss=[];
   [['top',l.top],['bottom',l.bottom]].concat(Object.entries(l.acc||{})).forEach(([slot,id])=>{if(id==null)return;const p=pieceById(id);if(p)G=mergePiece(G,p);else miss.push(slot)});
   G.c=fixC(G.c);
@@ -1181,7 +1251,7 @@ function lbText(l){
 function sheetData(kind,id){
   if(kind==='lb'){const l=S.lookbook.find(x=>x.id==id);return l&&{name:l.name,text:lbText(l),G:lookG(l)}}
   const l=S.looks.find(x=>x.id==id);if(!l)return null;
-  const G=l.kind==='piece'?pieceG(l):{top:l.top,bottom:l.bottom,fabric:l.fabric,fabricB:l.fabricB||l.fabric,pat:l.pat,c:fixC(Object.assign({},ACCC,l.c)),acc:Object.assign({},ACC0,l.acc||{}),marks:l.marks};
+  const G=l.kind==='piece'?pieceG(l):{top:l.top,bottom:l.bottom,fabric:l.fabric,fabricB:l.fabricB||l.fabric,pat:l.pat,c:fixC(Object.assign({},ACCC,l.c)),acc:Object.assign({},ACC0,l.acc||{}),marks:l.marks,dets:l.dets};
   return {name:l.name,text:sheetText(l),G,flats:l.kind==='piece'&&l.cat!=='acc'?['front','back'].map(v=>flatSVG(l,v)):null};
 }
 const sheetViews=(G,uid)=>['front','back'].map(v=>build(Object.assign({},G,{view:v}),uid+v,null));
@@ -1421,7 +1491,7 @@ document.addEventListener('click',e=>{
     case 'acc':S.acc[el.dataset.g]=k;if(k!=='none'&&el.dataset.g!=='shoe')S.sel=ACC[el.dataset.g].z;break;
     case 'save':{
       const n=S.looks.filter(l=>l.kind!=='piece').length+1;
-      S.looks.push({id:Date.now(),kind:'outfit',name:'Tenue '+n,top:S.top,bottom:S.bottom,fabric:S.fabric,fabricB:S.fabricB,pat:Object.assign({},S.pat),c:Object.assign({},S.c),acc:Object.assign({},S.acc),marks:JSON.parse(JSON.stringify(S.marks))});
+      S.looks.push({id:Date.now(),kind:'outfit',name:'Tenue '+n,top:S.top,bottom:S.bottom,fabric:S.fabric,fabricB:S.fabricB,pat:Object.assign({},S.pat),c:Object.assign({},S.c),acc:Object.assign({},S.acc),marks:JSON.parse(JSON.stringify(S.marks)),dets:JSON.parse(JSON.stringify(S.dets))});
       persist();toast('Tenue ajoutée à ta collection');return;
     }
     case 'mksel':S.mi=+k;{const mm=S.marks[S.mi];if(mm)S.view=PL[mm.place].v==='b'?'back':'front'}break;
@@ -1449,7 +1519,7 @@ document.addEventListener('click',e=>{
     case 'logo':S.brand.logo=k;break;
     case 'logoBg':S.brand.bg=k;break;
     case 'logoFg':S.brand.fg=k;break;
-    case 'openLook':{const l=S.looks.find(x=>x.id==k);if(l){S.top=l.top;S.bottom=l.bottom;S.fabric=l.fabric;S.fabricB=l.fabricB||l.fabric;S.pat=Object.assign({},DEF.pat,l.pat||{});S.mode='outfit';S.editId=null;S.c=fixC(Object.assign({},ACCC,l.c));S.acc=Object.assign({},ACC0,l.acc||{});S.marks=(l.marks||[]).map(m=>Object.assign({},DEFMARK,m));S.mi=0;S.view='front';go('studio')}return}
+    case 'openLook':{const l=S.looks.find(x=>x.id==k);if(l){S.top=l.top;S.bottom=l.bottom;S.fabric=l.fabric;S.fabricB=l.fabricB||l.fabric;S.pat=Object.assign({},DEF.pat,l.pat||{});S.mode='outfit';S.editId=null;S.c=fixC(Object.assign({},ACCC,l.c));S.acc=Object.assign({},ACC0,l.acc||{});S.marks=(l.marks||[]).map(m=>Object.assign({},DEFMARK,m));S.mi=0;S.dets=(l.dets||[]).map(x=>Object.assign({},DEFDET,x));S.di=0;S.view='front';go('studio')}return}
     case 'sheet':openSheet=(openSheet==+k)?null:+k;break;
     case 'collView':S.collView=k;break;
     case 'libCat':S.libCat=k;break;
@@ -1490,7 +1560,7 @@ document.addEventListener('click',e=>{
     }
     case 'lbOpen':{
       const l=S.lookbook.find(x=>x.id==k);if(!l)return;const G=lookG(l);
-      Object.assign(S,{top:G.top,bottom:G.bottom,fabric:G.fabric,fabricB:G.fabricB,pat:G.pat,c:fixC(Object.assign({},ACCC,G.c)),acc:G.acc,marks:G.marks,mi:0,mode:'outfit',editId:null,view:'front',sel:'tBody'});
+      Object.assign(S,{top:G.top,bottom:G.bottom,fabric:G.fabric,fabricB:G.fabricB,pat:G.pat,c:fixC(Object.assign({},ACCC,G.c)),acc:G.acc,marks:G.marks,dets:G.dets,di:0,mi:0,mode:'outfit',editId:null,view:'front',sel:'tBody'});
       go('studio');return;
     }
     case 'lbSheet':lbSheetId=(lbSheetId==+k)?null:+k;break;

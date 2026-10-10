@@ -17,6 +17,6 @@ export function charger(stockage = {}) {
   };
   vm.createContext(ctx);
   vm.runInContext(code + '\n;globalThis.__t={mergePiece,applyPiece,makePiece,load,build,DEF,DEFMARK,ACC0,get S(){return S},set S(v){S=v}' +
-    (code.includes('function lookG(') ? ',lookG,lbText,lbUses,lbForget,lookbook,zonesOf,sheetText,pieceThumb,randomLook,TOPS,BOTTOMS,sheetData,sheetHTML,fileName,wrapText,vbOf,specRows,SPEC,POM,GRADE,TOL,flatSVG,vertsOf,patronPanel,mockupSVG,collection,libItems,libHit,applyTheme,THEME_NEXT,doc:document' : '') + '};', ctx);
+    (code.includes('function lookG(') ? ',lookG,lbText,lbUses,lbForget,lookbook,zonesOf,sheetText,pieceThumb,randomLook,TOPS,BOTTOMS,sheetData,sheetHTML,fileName,wrapText,vbOf,specRows,SPEC,POM,GRADE,TOL,flatSVG,vertsOf,patronPanel,mockupSVG,collection,libItems,libHit,DET,DPL,DEFDET,initials,applyTheme,THEME_NEXT,doc:document' : '') + '};', ctx);
   return ctx.__t;
 }
