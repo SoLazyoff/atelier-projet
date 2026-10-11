@@ -339,6 +339,8 @@ const SHAPES={
    f:1 couleur du détail, f:2 couleur foncée, f:3 métal ; s:'seam' surpiqûre, 'zip', 'cord', 'line' ; t:'txt' initiales de la marque.
    abs:true = tracé à sa place sur le mannequin (capuches), sans emplacement ni échelle. */
 const HOODF='M108 70 Q98 28 150 22 Q202 28 192 70 Q150 84 108 70 Z',HOODB='M102 62 Q96 104 128 130 Q150 138 172 130 Q204 104 198 62 Q150 78 102 62 Z';
+/* hauts qui ont déjà leur capuche : une capuche ajoutée y ferait double emploi */
+const HOODED=['hoodie','wind','balahood'];
 const DETCATS={pocket:'Poches',label:'Étiquettes',zip:'Zips',cord:'Cordons',hood:'Capuches'};
 const DET={
   patch:{c:'pocket',l:'Poche plaquée',place:'chest-l',pr:[{d:'M-9 -10 L9 -10 L9 7 Q9 10 6 10 L-6 10 Q-9 10 -9 7 Z',f:1},{d:'M-7.5 -8.5 L7.5 -8.5 L7.5 6.5 Q7.5 8.5 5.5 8.5 L-5.5 8.5 Q-7.5 8.5 -7.5 6.5 Z',s:'seam'}]},
@@ -633,7 +635,7 @@ function build(G,uid,sel){
   if(showTop&&hooded&&F)add(P('tCollar','M108 70 Q98 28 150 22 Q202 28 192 70 Q150 84 108 70 Z',0));
 
   /* détails posés à plat (poches, zips…) et capuches ajoutées */
-  const DETS=(G.dets||[]).filter(dt=>DET[dt.kind]&&!(only&&MARKCAT[dt.place]!==only));
+  const DETS=(G.dets||[]).filter(dt=>DET[dt.kind]&&!(only&&MARKCAT[dt.place]!==only)&&!(DET[dt.kind].abs&&HOODED.includes(top)));
   const detItem=dt=>{if(DET[dt.kind].abs)return {t:'det',dt,F};const ps=placeXY(dt.place,G,A,F);return ps&&{t:'det',dt,F,x:ps.x+(Number(dt.dx)||0),y:ps.y+(Number(dt.dy)||0),sc:Math.min(ps.bw,22)*(Number(dt.size)||1)/20}};
   if(F)DETS.filter(dt=>DET[dt.kind].abs).forEach(dt=>add(detItem(dt)));
   /* tête, couvre-chef, lunettes */
@@ -1155,7 +1157,7 @@ function applyTheme(){const r=document.documentElement;if(S.theme==='auto')r.rem
 /* ---------- onglet Collection ---------- */
 let openSheet=null,pendingDel=null,openPatron=null;
 function patLine(k,col,lab){return k&&k!=='none'&&PATS[k]?`- ${lab} : ${PATS[k]}, ${colorName(col||'#f3f1ea')} (${col||'#f3f1ea'})\n`:''}
-function detLines(ds){return '\nDétails et fournitures\n'+ds.filter(x=>DET[x.kind]).map(x=>`- ${DET[x.kind].l} · ${(PL[x.place]||DPL[x.place]).l} · ${colorName(x.color)} (${x.color})\n`).join('')}
+function detLines(ds,top){const ok=ds.filter(x=>DET[x.kind]&&!(DET[x.kind].abs&&HOODED.includes(top)));return ok.length?'\nDétails et fournitures\n'+ok.map(x=>`- ${DET[x.kind].l} · ${(PL[x.place]||DPL[x.place]).l} · ${colorName(x.color)} (${x.color})\n`).join(''):''}
 function sheetText(L){
   if(L.kind==='piece'){
     let t=`Fiche technique (pièce) : ${L.name}\nMarque : ${S.brand.name}\n\n`;
@@ -1163,7 +1165,7 @@ function sheetText(L){
     else if(L.cat==='bottom'){t+=`Bas : ${BOTTOMS[L.bottom].label}\nMatière : ${FABRICS[L.fabricB||L.fabric]}\n\nCouleurs\n`;const Z=BOTTOMS[L.bottom].zones;Object.keys(Z).forEach(k=>{t+=`- ${Z[k]} : ${colorName(L.c[k])} (${L.c[k]})\n`});t+=`- Surpiqûres et liserés : ${colorName(L.c.stitchB)} (${L.c.stitchB})\n`+patLine(L.pat,L.c.bPat,'Motif (jambes)')}
     else{const z=ACC[L.group].z;t+=`Accessoire : ${ACC[L.group].label}, ${ACC[L.group].opts[L.opt]}\nCouleur : ${colorName(L.c[z])} (${L.c[z]})\n`}
     if(L.marks&&L.marks.length){t+='\nMarquage (logos)\n';L.marks.forEach((m,i)=>{t+='- '+markDesc(Object.assign({},DEFMARK,m),i)+'\n'})}
-    if(L.dets&&L.dets.length)t+=detLines(L.dets);
+    if(L.dets&&L.dets.length)t+=detLines(L.dets,L.top);
     const sr=specRows(L);
     if(sr.length){t+=`\nMesures en cm (${SIZES.join(' / ')})\n`;sr.forEach(r=>{t+=`- ${r.letter}. ${r.label} : ${r.vals.map(cm).join(' / ')} (tolérance ±${cm(r.tol)})\n`})}
     return t;
@@ -1175,7 +1177,7 @@ function sheetText(L){
   const lp=L.pat||{};s+=patLine(lp.top,L.c.tPat,'Motif du haut (corps et manches)')+patLine(lp.bottom,L.c.bPat,'Motif du bas (jambes)');
   const ac=Object.assign({},ACC0,L.acc||{});
   Object.keys(ACC).forEach(g=>{if(ac[g]!=='none'){const z=ACC[g].z,col=(L.c[z]||ACCC[z]);s+=`- ${ACC[g].label} : ${ACC[g].opts[ac[g]]}, ${colorName(col)} (${col})\n`}});
-  if(L.dets&&L.dets.length)s+=detLines(L.dets);
+  if(L.dets&&L.dets.length)s+=detLines(L.dets,L.top);
   if(L.marks&&L.marks.length){s+='\nMarquage (logos)\n';L.marks.forEach((m,i)=>{s+='- '+markDesc(Object.assign({},DEFMARK,m),i)+'\n'})}
   return s;
 }
@@ -1426,9 +1428,11 @@ function detailsPane(sw){
   if(d){
     const chips=v=>detPlaces(v).map(k=>`<button class="chip" data-act="detplace" data-k="${k}" aria-pressed="${d.place===k}">${(PL[k]||DPL[k]).l}</button>`).join('');
     const hidden=S.mode==='piece'&&MARKCAT[d.place]!==S.cat;
+    const dupHood=D.abs&&HOODED.includes(S.top);
     const noSleeve=(d.place==='sleeve-l'||d.place==='sleeve-r')&&['vest','jersey','pufvest'].includes(S.top);
     ed=`<h2>${esc(D.l)}</h2>
     ${hidden?`<p class="note">Ce détail est sur l’autre pièce de la tenue : il n’apparaît pas en mode pièce.</p>`:''}
+    ${dupHood?`<p class="note">Ce haut a déjà sa capuche : la capuche ajoutée n’est ni dessinée ni listée dans la fiche.</p>`:''}
     ${noSleeve?`<p class="note">Cette pièce n’a pas de manches : choisis un autre emplacement.</p>`:''}
     ${D.abs?'':`<p class="small mute" style="margin:0 0 6px">Emplacement · face</p><div class="chips hs">${chips('f')}</div>
     <p class="small mute" style="margin:12px 0 6px">Emplacement · dos</p><div class="chips hs">${chips('b')}</div>`}
@@ -1549,6 +1553,9 @@ document.addEventListener('click',e=>{
       if(S.mode==='piece'){
         if(S.cat==='acc'){toast('Choisis un haut ou un bas pour poser un détail');return}
         if(D.abs&&S.cat!=='top'){toast('Une capuche se pose sur un haut');return}
+      }
+      if(D.abs&&HOODED.includes(S.top)&&(S.mode!=='piece'||S.cat==='top')){toast(TOPS[S.top].label+' : il a déjà sa capuche');return}
+      if(S.mode==='piece'){
         if(MARKCAT[place]!==S.cat)place=S.cat==='top'?'chest-l':(D.c==='label'?'waist-b':'thigh-l');
       }
       S.dets.push(Object.assign({},DEFDET,{kind:k,place,color:D.c==='zip'||D.c==='cord'?'#b9bcc2':DEFDET.color}));S.di=S.dets.length-1;

@@ -95,3 +95,27 @@ test("la taille d'un détail ne dépend pas de la largeur prévue pour les grand
   assert.equal(sc('back-c'), 1.1);
   assert.equal(sc('chest-l'), 1.1);
 });
+
+test("une capuche ajoutée n'est ni dessinée ni listée sur un haut qui a déjà la sienne", () => {
+  const hood = { kind: 'hood2', place: 'hood', color: '#c8283c' };
+  const svg = top => t.build(Object.assign(avec([hood]), { mode: 'outfit', top, view: 'front' }), 'h', null);
+  assert.match(svg('bomber'), /fill="#c8283c"/);
+  assert.doesNotMatch(svg('hoodie'), /fill="#c8283c"/);
+  const t2 = charger();
+  t2.S.dets = [Object.assign({}, t2.DEFDET, hood), Object.assign({}, t2.DEFDET, { kind: 'patch', place: 'chest-l' })];
+  t2.S.cat = 'top'; t2.S.top = 'hoodie';
+  const txt = t2.sheetText(t2.makePiece());
+  assert.match(txt, /Poche plaquée/);
+  assert.doesNotMatch(txt, /Capuche doublée/);
+  t2.S.dets = [Object.assign({}, t2.DEFDET, hood)];
+  assert.doesNotMatch(t2.sheetText(t2.makePiece()), /Détails et fournitures/);
+});
+
+test("l'éditeur prévient quand la capuche ajoutée est masquée", () => {
+  const t2 = charger();
+  t2.S.markView = 'dets'; t2.S.top = 'wind';
+  t2.S.dets = [Object.assign({}, t2.DEFDET, { kind: 'hood', place: 'hood' })];
+  assert.match(t2.marquage(), /déjà sa capuche/);
+  t2.S.top = 'bomber';
+  assert.doesNotMatch(t2.marquage(), /déjà sa capuche/);
+});
